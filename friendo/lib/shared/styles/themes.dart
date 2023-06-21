@@ -43,11 +43,21 @@ ThemeData lightTheme() {
 
     // control text theme
     textTheme: const TextTheme(
-        bodyLarge: TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.w500,
-      color: Colors.black,
-    )),
+      bodyLarge: TextStyle(
+        fontSize: 18,
+        fontFamily: "Jannah",
+        fontWeight: FontWeight.w500,
+        color: Colors.black,
+        height: 1.3,
+      ),
+      labelMedium: TextStyle(
+        fontSize: 16,
+        fontFamily: "Jannah",
+        fontWeight: FontWeight.w100,
+
+        color: Colors.black,
+      ),
+    ),
 
     // control bottom navbar
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
@@ -100,10 +110,10 @@ ThemeData darkTheme() {
     // control text theme
     textTheme: const TextTheme(
         bodyLarge: TextStyle(
-      fontSize: 18,
-      fontWeight: FontWeight.w500,
-      color: Colors.white,
-    )),
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        )),
 
     // control bottom navbar
     bottomNavigationBarTheme: BottomNavigationBarThemeData(

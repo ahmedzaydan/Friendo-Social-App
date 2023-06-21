@@ -24,6 +24,7 @@ class AuthCubit extends Cubit<AuthStates> {
       password: password,
     )
         .then((userCredential) {
+      uid = userCredential.user!.uid;
       emit(LoginSuccessState(userCredential.user!.uid));
     }).catchError((error) {
       emit(LoginErrorState(error.toString()));
@@ -85,6 +86,9 @@ class AuthCubit extends Cubit<AuthStates> {
       uid: uid,
       email: email,
       phone: phone,
+      profileImage: '',
+      coverImage: '',
+      bio: '',
     );
     usersDB.doc(uid).set(userModel.toMap()).then((value) {
       emit(CreateUserSuccessState());

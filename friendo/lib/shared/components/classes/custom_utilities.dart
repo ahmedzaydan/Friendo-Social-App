@@ -2,22 +2,23 @@
 import 'package:flutter/material.dart';
 
 class CustomUtilities {
-  
   // navigator function
   static void navigateTo({
-    required BuildContext context,
+    required dynamic context,
     required Widget destination,
+    bool pushAndFinish = false,
   }) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => destination,
+        maintainState: !pushAndFinish,
       ),
     );
   }
 
   static Widget vSeparator({
-    double height = 15.0,
+    double height = 10.0,
   }) {
     return SizedBox(
       height: height,
@@ -25,7 +26,7 @@ class CustomUtilities {
   }
 
   static Widget hSeparator({
-    double width = 15.0,
+    double width = 10.0,
   }) {
     return SizedBox(
       width: width,

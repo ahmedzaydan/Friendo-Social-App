@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/layout/cubit/friendo_cubit.dart';
 import 'package:friendo/layout/home_layout.dart';
-import 'package:friendo/modules/authentication/login.dart';
-import 'package:friendo/modules/authentication/register.dart';
+import 'package:friendo/modules/authentication/login_screen.dart';
 import 'package:friendo/shared/bloc_observer.dart';
 import 'package:friendo/shared/components/constants.dart';
 import 'package:friendo/shared/network/local/cache_controller.dart';
@@ -21,14 +20,16 @@ Future<void> main() async {
   uid == null
       ? startWidget = LoginScreen()
       : startWidget = const HomeLayoutScreen();
-
+  print("uid: $uid");
   runApp(FriendoApp(startWidget));
 }
 
 class FriendoApp extends StatelessWidget {
   // const FriendoApp({super.key});
   final Widget startWidget;
+
   const FriendoApp(this.startWidget, {super.key});
+
   @override
   Widget build(BuildContext context) {
     // TODO: implement build

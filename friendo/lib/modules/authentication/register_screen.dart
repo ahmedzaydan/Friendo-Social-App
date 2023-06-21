@@ -4,12 +4,12 @@ import 'package:friendo/shared/components/classes/custom_button.dart';
 import 'package:friendo/shared/components/classes/custom_toast.dart';
 
 import '../../shared/components/classes/custom_text_form_field.dart';
-import '../../shared/components/custom_utilities.dart';
+import '../../shared/components/classes/custom_utilities.dart';
 import '../../shared/components/constants.dart';
 import '../../shared/styles/color.dart';
 import 'cubit/auth_cubit.dart';
 import 'cubit/auth_states.dart';
-import 'login.dart';
+import 'login_screen.dart';
 
 // ignore: must_be_immutable
 class RegisterScreen extends StatelessWidget {

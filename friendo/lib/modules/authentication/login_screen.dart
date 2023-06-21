@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/layout/home_layout.dart';
 import 'package:friendo/modules/authentication/cubit/auth_cubit.dart';
-import 'package:friendo/modules/authentication/register.dart';
+import 'package:friendo/modules/authentication/register_screen.dart';
 import 'package:friendo/shared/components/classes/custom_toast.dart';
 import 'package:friendo/shared/network/local/cache_controller.dart';
 
 import '../../shared/components/classes/custom_button.dart';
 import '../../shared/components/classes/custom_text_form_field.dart';
-import '../../shared/components/custom_utilities.dart';
+import '../../shared/components/classes/custom_utilities.dart';
 import '../../shared/components/constants.dart';
 import 'cubit/auth_states.dart';
 
@@ -44,7 +44,7 @@ class LoginScreen extends StatelessWidget {
             // Then navigate to home screen
             CustomUtilities.navigateTo(
               context: context,
-              destination: const HomeLayoutScreen(),
+              destination: HomeLayoutScreen(),
             );
           }
         },
