@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hexcolor/hexcolor.dart';
 
-const defaultColor = Colors.blue;
-const MaterialColor lightThemeColor = Colors.blue;
-const String dimDark = '243447'; // color used in dark theme
+// Light theme colors
+HexColor lightThemeColor = HexColor('FFFFFF');
+const MaterialColor lightThemePrimaryColor = Colors.blue;
+
+// Dark theme colors
+HexColor darkThemeColor = HexColor('243447');

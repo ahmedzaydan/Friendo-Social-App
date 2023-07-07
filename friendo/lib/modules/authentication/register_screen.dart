@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:friendo/shared/components/classes/custom_button.dart';
-import 'package:friendo/shared/components/classes/custom_toast.dart';
 
-import '../../shared/components/classes/custom_text_form_field.dart';
-import '../../shared/components/classes/custom_utilities.dart';
+import '../../shared/components/ui_widgets.dart';
 import '../../shared/components/constants.dart';
-import '../../shared/styles/color.dart';
 import 'cubit/auth_cubit.dart';
 import 'cubit/auth_states.dart';
 import 'login_screen.dart';
@@ -29,14 +25,14 @@ class RegisterScreen extends StatelessWidget {
       child: BlocConsumer<AuthCubit, AuthStates>(
         listener: (context, state) {
           if (state is RegisterErrorState) {
-            CustomToast.showToast(
+            UIWidgets.showCustomToast(
               message: state.error,
               state: ToastStates.ERROR,
             );
           }
           if (state is CreateUserSuccessState) {
             // Then navigate to login screen
-            CustomUtilities.navigateTo(
+            UIWidgets.navigateTo(
               context: context,
               destination: LoginScreen(),
             );
@@ -84,13 +80,14 @@ class RegisterScreen extends StatelessWidget {
                             ),
                           ),
                         ),
-                        CustomUtilities.vSeparator(),
+                        UIWidgets.vSeparator(),
 
                         // Username
-                        CustomTextFormField.textFormField(
+                        UIWidgets.customTextFormField(
                           context: buildContext,
                           textController: usernameController,
                           keyboardType: TextInputType.text,
+                          maxLines: 1,
                           prefixIcon: const Icon(
                             Icons.person,
                           ),
@@ -102,9 +99,9 @@ class RegisterScreen extends StatelessWidget {
                             return null;
                           },
                         ),
-                        CustomUtilities.vSeparator(),
+                        UIWidgets.vSeparator(),
                         // Email
-                        CustomTextFormField.textFormField(
+                        UIWidgets.customTextFormField(
                           context: buildContext,
                           textController: emailController,
                           keyboardType: TextInputType.emailAddress,
@@ -119,13 +116,14 @@ class RegisterScreen extends StatelessWidget {
                             return null;
                           },
                         ),
-                        CustomUtilities.vSeparator(),
+                        UIWidgets.vSeparator(),
                         // Password
-                        CustomTextFormField.textFormField(
+                        UIWidgets.customTextFormField(
                           context: buildContext,
                           textController: passwordController,
                           keyboardType: TextInputType.visiblePassword,
                           isPassword: authCubit.isPassword,
+                          maxLines: 1,
                           prefixIcon: const Icon(
                             Icons.lock_open,
                           ),
@@ -143,13 +141,15 @@ class RegisterScreen extends StatelessWidget {
                             return null;
                           },
                         ),
-                        CustomUtilities.vSeparator(),
+                        UIWidgets.vSeparator(),
 
                         // Phone
-                        CustomTextFormField.textFormField(
+                        UIWidgets.customTextFormField(
                           context: buildContext,
                           textController: phoneController,
                           keyboardType: TextInputType.number,
+                          maxLines: 1,
+                          maxLength: 11,
                           prefixIcon: const Icon(
                             Icons.phone,
                           ),
@@ -161,12 +161,12 @@ class RegisterScreen extends StatelessWidget {
                             return null;
                           },
                         ),
-                        CustomUtilities.vSeparator(),
+                        UIWidgets.vSeparator(),
 
                         // Sign up
                         state is RegisterLoadingState
                             ? const CircularProgressIndicator()
-                            : CustomButton.button(
+                            : UIWidgets.customMaterialButton(
                                 context: context,
                                 onPressed: () {
                                   if (formKey.currentState!.validate()) {
@@ -183,9 +183,9 @@ class RegisterScreen extends StatelessWidget {
                                 },
                                 text: "Sign up",
                                 textColor: Colors.white,
-                                backgroundColor: defaultColor,
+                                backgroundColor: Theme.of(context).primaryColor,
                               ),
-                        CustomUtilities.vSeparator(),
+                        UIWidgets.vSeparator(),
                       ],
                     ),
                   ),

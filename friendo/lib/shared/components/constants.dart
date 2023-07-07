@@ -1,14 +1,16 @@
 // ignore_for_file: constant_identifier_names
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
+import '../../models/user_model.dart';
+
 enum ToastStates { SUCCESS, ERROR, WARNING }
 
-String? uid;
-var usersDB = FirebaseFirestore.instance.collection('users');
+const double iconSize = 20;
+String? currentUserId;
+var usersCollection = FirebaseFirestore.instance.collection('users');
 var storageRef = FirebaseStorage.instance.ref();
+UserModel? currentUserModel;
 
 // Images:
 String postImage =
@@ -21,6 +23,5 @@ String foodImage =
     'https://img.freepik.com/free-photo/traditional-tajine-dishes-couscous-fresh-salad-rustic-wooden-table-tagine-lamb-meat-pumpkin-top-view-flat-lay_2829-6116.jpg?w=1060&t=st=1687035689~exp=1687036289~hmac=991b40a4460f9444af4064223dd1ba4293523514d2bb3f5b0f09963f22f80c74';
 String catImage =
     'https://img.freepik.com/free-photo/close-up-portrait-beautiful-cat_23-2149214419.jpg?w=996&t=st=1687036446~exp=1687037046~hmac=90d6ab32eb696da06d7b842f8ab21295eeec101911317f02369638441f415822';
-const String noImageURL =
-    'https://firebasestorage.googleapis.com/v0/b/friendo-14343.appspot.com/o/users%2FBlank%20image.png?alt=media&token=11c9390d-6f50-4edc-b31b-2e803fd347cb';
-File noImageFile = File(noImageURL);
+const String blankImageURL =
+    'https://firebasestorage.googleapis.com/v0/b/friendo-14343.appspot.com/o/Blank%20image.png?alt=media&token=6d508ae1-d6b1-4445-af75-504ce4ff061b';

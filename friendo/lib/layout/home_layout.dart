@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/layout/cubit/freindo_states.dart';
 import 'package:friendo/layout/cubit/friendo_cubit.dart';
-import 'package:friendo/shared/components/classes/custom_utilities.dart';
+import 'package:friendo/shared/components/ui_widgets.dart';
 
-import '../modules/new_post_screen.dart';
-import '../shared/styles/icon_broken.dart';
+import '../modules/posts/new_post_screen.dart';
 
 class HomeLayoutScreen extends StatelessWidget {
   const HomeLayoutScreen({Key? key}) : super(key: key);
@@ -14,57 +13,37 @@ class HomeLayoutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<FriendoCubit, FriendoStates>(
       listener: (context, state) {
-        if (state is NewPostState) {
-          CustomUtilities.navigateTo(
+        if (state is NewPostScreenState) {
+          UIWidgets.navigateTo(
             context: context,
-            destination: const NewPostScreen(),
+            destination: NewPostScreen(),
           );
         }
       },
       builder: (context, state) {
         FriendoCubit friendoCubit = FriendoCubit.getFriendoCubit(context);
         return Scaffold(
-            appBar: AppBar(
-              title: Text(
-                "Home Layout Screen",
-                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                      color: Colors.white,
-                    ),
-              ),
-              centerTitle: true,
+            appBar: UIWidgets.customAppBar(
+              context: context,
+              title: "Home Layout Screen",
+              hasLeading: false,
               actions: [
-                // logout button
-                // IconButton(
-                //   onPressed: () {
-                //     CustomDialog.customDialog(
-                //       title: "Are you sure you want to logout?",
-                //       context: context,
-                //       onPressed: () {
-                //         friendoCubit.logout(context: context);
-                //         CustomUtilities.navigateTo(
-                //           context: context,
-                //           destination: LoginScreen(),
-                //         );
-                //       },
-                //     );
-                //   },
-                //   icon: const Icon(
-                //     IconBroken.Logout,
-                //   ),
-                // ),
-
-                // notification button
                 IconButton(
                   onPressed: () {},
-                  icon: const Icon(IconBroken.Notification),
+                  icon: const Icon(
+                    Icons.notifications,
+                    color: Colors.white,
+                  ),
                 ),
-                CustomUtilities.hSeparator(
+                UIWidgets.hSeparator(
                   width: 5,
                 ),
-                // search button
                 IconButton(
                   onPressed: () {},
-                  icon: const Icon(IconBroken.Search),
+                  icon: const Icon(
+                    Icons.search,
+                    color: Colors.white,
+                  ),
                 ),
               ],
             ),

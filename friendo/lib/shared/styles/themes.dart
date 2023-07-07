@@ -1,32 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hexcolor/hexcolor.dart';
 
 import 'color.dart';
 
 ThemeData lightTheme() {
   return ThemeData(
     // control scaffold
-    scaffoldBackgroundColor: Colors.white,
+    scaffoldBackgroundColor: lightThemeColor,
 
     // control appBar
-    appBarTheme: const AppBarTheme(
+    appBarTheme: AppBarTheme(
       // control status bar
       systemOverlayStyle: SystemUiOverlayStyle(
-        statusBarColor: Colors.white,
+        statusBarColor: lightThemeColor,
         statusBarIconBrightness: Brightness.dark,
       ),
 
       elevation: 0,
       backgroundColor: Colors.blue,
-      iconTheme: IconThemeData(
+      iconTheme: const IconThemeData(
         color: Colors.black,
       ),
 
       // control title
       titleSpacing: 20,
       titleTextStyle: TextStyle(
-        color: Colors.white,
+        color: lightThemeColor,
         fontWeight: FontWeight.bold,
         fontSize: 20,
       ),
@@ -34,12 +33,12 @@ ThemeData lightTheme() {
 
     // control floating action button
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: lightThemeColor,
+      backgroundColor: lightThemePrimaryColor,
     ),
 
     // control body
-    primaryColor: lightThemeColor,
-    primarySwatch: lightThemeColor,
+    primaryColor: lightThemePrimaryColor,
+    primarySwatch: lightThemePrimaryColor,
 
     // control text theme
     textTheme: const TextTheme(
@@ -54,7 +53,6 @@ ThemeData lightTheme() {
         fontSize: 16,
         fontFamily: "Jannah",
         fontWeight: FontWeight.w100,
-
         color: Colors.black,
       ),
     ),
@@ -62,7 +60,7 @@ ThemeData lightTheme() {
     // control bottom navbar
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       elevation: 20,
-      selectedItemColor: lightThemeColor,
+      selectedItemColor: lightThemePrimaryColor,
       type: BottomNavigationBarType.fixed,
       unselectedItemColor: Colors.black,
     ),
@@ -70,7 +68,7 @@ ThemeData lightTheme() {
 }
 
 ThemeData darkTheme() {
-  var darkThemeColor = HexColor(dimDark);
+  
   return ThemeData(
     // control scaffold
     scaffoldBackgroundColor: darkThemeColor,
@@ -110,15 +108,15 @@ ThemeData darkTheme() {
     // control text theme
     textTheme: const TextTheme(
         bodyLarge: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w500,
-          color: Colors.white,
-        )),
+      fontSize: 18,
+      fontWeight: FontWeight.w500,
+      color: Colors.white,
+    )),
 
     // control bottom navbar
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
       elevation: 20,
-      selectedItemColor: lightThemeColor,
+      selectedItemColor: lightThemePrimaryColor,
       type: BottomNavigationBarType.fixed,
       unselectedItemColor: Colors.grey,
       backgroundColor: darkThemeColor,

@@ -4,10 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/layout/cubit/friendo_cubit.dart';
 import 'package:friendo/layout/home_layout.dart';
 import 'package:friendo/modules/authentication/login_screen.dart';
+import 'package:friendo/modules/posts/cubit/post_cubit.dart';
 import 'package:friendo/shared/bloc_observer.dart';
 import 'package:friendo/shared/components/constants.dart';
 import 'package:friendo/shared/network/local/cache_controller.dart';
 import 'package:friendo/shared/styles/themes.dart';
+import 'package:friendo/temp.dart';
+
+import 'modules/authentication/cubit/auth_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,11 +20,10 @@ Future<void> main() async {
   await CacheController.init();
 
   Widget startWidget;
-  uid = await CacheController.getData(key: 'uid');
-  uid == null
+  currentUserId = await CacheController.getData(key: 'uid');
+  currentUserId == null
       ? startWidget = LoginScreen()
       : startWidget = const HomeLayoutScreen();
-  print("uid: $uid");
   runApp(FriendoApp(startWidget));
 }
 
@@ -32,10 +35,12 @@ class FriendoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => FriendoCubit()..getUserData()),
+        BlocProvider(create: (context) => AuthCubit()),
+        BlocProvider(
+            create: (context) => FriendoCubit()..getCurrentUserModel()),
+        BlocProvider(create: (context) => PostCubit()..getPostsInfo()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: true,

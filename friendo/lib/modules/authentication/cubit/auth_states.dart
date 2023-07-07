@@ -2,6 +2,7 @@ abstract class AuthStates {}
 
 class AuthInitialState extends AuthStates {}
 
+// Login states
 class LoginLoadingState extends AuthStates {}
 
 class LoginSuccessState extends AuthStates {
@@ -15,6 +16,17 @@ class LoginErrorState extends AuthStates {
 
   LoginErrorState(this.error);
 }
+
+// Verify email states
+class VerifyEmailSuccessState extends AuthStates {}
+
+class VerifyEmailErrorState extends AuthStates {
+  final String error;
+
+  VerifyEmailErrorState(this.error);
+}
+
+// Register states
 class RegisterLoadingState extends AuthStates {}
 
 class RegisterSuccessState extends AuthStates {
@@ -31,10 +43,22 @@ class RegisterErrorState extends AuthStates {
 
 class ChangePasswordVisibilityState extends AuthStates {}
 
+// Create user states
 class CreateUserSuccessState extends AuthStates {}
 
 class CreateUserErrorState extends AuthStates {
   final String error;
 
   CreateUserErrorState(this.error);
+}
+
+// Logout states
+class LogoutLoadingState extends AuthStates {}
+
+class LogoutSuccessState extends AuthStates {}
+
+class LogoutErrorState extends AuthStates {
+  final String error;
+
+  LogoutErrorState(this.error);
 }

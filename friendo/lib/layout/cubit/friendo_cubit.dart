@@ -1,22 +1,19 @@
 // ignore_for_file: avoid_print
-
 import 'dart:io';
 
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/layout/cubit/freindo_states.dart';
 import 'package:friendo/models/user_model.dart';
-import 'package:friendo/modules/chats_screen.dart';
-import 'package:friendo/modules/new_post_screen.dart';
-import 'package:friendo/modules/settings_screen.dart';
-import 'package:friendo/modules/users_screen.dart';
-import 'package:friendo/shared/components/classes/custom_toast.dart';
+import 'package:friendo/modules/profile_screen.dart';
 import 'package:friendo/shared/components/constants.dart';
-import 'package:friendo/shared/network/local/cache_controller.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../modules/feeds_screen.dart';
+import '../../modules/chats_screen.dart';
+import '../../modules/posts/feeds_screen.dart';
+import '../../modules/settings_screen.dart';
+import '../../modules/users_screen.dart';
 import '../../shared/styles/icon_broken.dart';
 
 class FriendoCubit extends Cubit<FriendoStates> {
@@ -26,179 +23,180 @@ class FriendoCubit extends Cubit<FriendoStates> {
     return BlocProvider.of(context);
   }
 
-  late UserModel userModel;
-
-  void getUserData() {
-    usersDB.doc(uid!).get().then((documentSnapshot) {
-      userModel = UserModel.fromJson(json: documentSnapshot.data()!);
-      coverImageURL = userModel.coverImage!;
-      profileImageURL = userModel.profileImage!;
-      emit(GetUserDataSuccessState());
-    }).catchError((error) {
-      print(error.toString());
-      emit(GetUserDataErrorState(error.toString()));
-    });
-  }
-
-  void verifyEmail() {
-    FirebaseAuth.instance.currentUser!.sendEmailVerification().then((value) {
-      usersDB.doc(uid!).update({
-        'isEmailVerified': true,
-      });
-      getUserData();
-      CustomToast.showToast(
-        message: "Please check your mail",
-        state: ToastStates.SUCCESS,
-      );
-      emit(VerifyEmailSuccessState());
-    }).catchError((error) {
-      print(error.toString());
-
-      emit(VerifyEmailErrorState(error.toString()));
-    });
-  }
-
-  void logout({
-    required BuildContext context,
-  }) {
-    emit(LogoutLoadingState());
-    FirebaseAuth.instance.signOut().then((value) {
-      CacheController.removeData(key: 'uid');
-      emit(LogoutSuccessState());
-    }).catchError((error) {
-      emit(LogoutErrorState(error.toString()));
-    });
-  }
-
-  int currentIndex = 0; // bottom nav bar index
-  void changeCurrentIndex({
-    required int index,
-  }) {
-    if (index == 2) {
-      emit(NewPostState());
-    } else {
-      currentIndex = index;
-      emit(ChangeCurrentIndexState());
+  void getCurrentUserModel() async {
+    try {
+      var documentSnapshot = await usersCollection.doc(currentUserId).get();
+      currentUserModel = UserModel.fromJson(json: documentSnapshot.data()!);
+      coverImageURL = currentUserModel!.coverImage!;
+      profileImageURL = currentUserModel!.profileImage!;
+      emit(GetCurrentUserModelSuccessState());
+    } catch (error) {
+      emit(GetCurrentUserModelErrorState(error.toString()));
     }
   }
 
-  List<Widget> bottomNavBarScreens = const [
-    FeedsScreen(),
-    ChatsScreen(),
-    NewPostScreen(),
-    UsersScreen(),
-    SettingsScreen(),
+  int currentIndex = 0; // bottom nav bar index
+
+  void changeCurrentIndex({
+    required int index,
+  }) {
+    currentIndex = index;
+    emit(ChangeCurrentIndexState());
+  }
+
+  // Cover image + profile image section
+  ImagePicker picker = ImagePicker();
+
+  File coverImage = File(blankImageURL);
+  String coverImageURL = blankImageURL;
+
+  File profileImage = File(blankImageURL);
+  String profileImageURL = blankImageURL;
+
+  final String initImagePath = 'users/$currentUserId';
+
+  // Upload profile/cover image
+  void uploadImage({
+    bool fromGallery = true,
+    bool isProfile = false,
+  }) async {
+    emit(UploadImageLoadingState());
+    // Pick image
+    final File imageFile = await pickImage(fromGallery: fromGallery);
+    isProfile ? profileImage = imageFile : coverImage = imageFile;
+
+    // Get image download URL
+    final String imageURL = await uploadToStorage(
+      imagePath: initImagePath + (isProfile ? '/profile' : '/cover'),
+      imageFile: isProfile ? profileImage : coverImage,
+    );
+    isProfile ? profileImageURL = imageURL : coverImageURL = imageURL;
+
+    updateImage(); // Send image download URL to Firebase Firestore
+  }
+
+  Future<File> pickImage({
+    bool fromGallery = true,
+  }) async {
+    File pickedImage = File('');
+    // Pick image from gallery or camera
+    final pickedFile = await picker.pickImage(
+        source: fromGallery ? ImageSource.gallery : ImageSource.camera);
+    if (pickedFile != null) {
+      pickedImage = File(pickedFile.path);
+    } else {
+      emit(PickImageErrorState());
+    }
+    return pickedImage;
+  }
+
+  Future<String> uploadToStorage({
+    required String imagePath,
+    required File imageFile,
+  }) async {
+    String imageURL = '';
+
+    // Create a reference to the image file in Firebase Storage
+    final imageRef = storageRef.child(
+      '$initImagePath/$imagePath/${Uri.file(imageFile.path).pathSegments.last}',
+    );
+
+    // Upload image to Firebase storage
+    final taskSnapshot = await imageRef.putFile(imageFile);
+
+    if (taskSnapshot.state == TaskState.success) {
+      // Get image download URL
+      final downloadURL = await taskSnapshot.ref.getDownloadURL();
+      if (downloadURL.isNotEmpty) {
+        imageURL = downloadURL;
+      } else {
+        emit(GetDownloadURLErrorState());
+      }
+    } else {
+      emit(PutImageInStorageErrorState());
+    }
+    return imageURL;
+  }
+
+  // Send image download URL to Firebase Firestore
+  void updateImage() async {
+    try {
+      await usersCollection.doc(currentUserId).update({
+        'coverImage': coverImageURL != blankImageURL
+            ? coverImageURL
+            : currentUserModel!.coverImage!,
+        'profileImage': profileImageURL != blankImageURL
+            ? profileImageURL
+            : currentUserModel!.profileImage!,
+      });
+      getCurrentUserModel();
+    } catch (error) {
+      emit(UpdateImageErrorState());
+    }
+  }
+
+  void updateUserData({
+    String? username,
+    String? bio,
+    String? phone,
+  }) async {
+    try {
+      await usersCollection.doc(currentUserId).update(
+        {
+          'username': username ?? currentUserModel!.username,
+          'bio': bio ?? currentUserModel!.bio,
+          'phone': phone ?? currentUserModel!.phone,
+        },
+      );
+      emit(UpdateUserDataSuccessState());
+      getCurrentUserModel();
+    } catch (error) {
+      emit(UpdateUserDataErrorState());
+    }
+  }
+
+  // BottomNavBar section
+  List<Widget> bottomNavBarScreens = [
+    const FeedsScreen(),
+    const ChatsScreen(),
+    const UsersScreen(),
+    ProfileScreen(),
+    const SettingsScreen(),
   ];
 
   List<BottomNavigationBarItem> bottomNavBarItems = const [
-    // Home
     BottomNavigationBarItem(
       icon: Icon(
-        IconBroken.Home,
+        Icons.home,
       ),
       label: 'Home',
     ),
-    // Chats
     BottomNavigationBarItem(
       icon: Icon(
-        IconBroken.Chat,
+        Icons.chat,
       ),
       label: 'Chats',
     ),
+    BottomNavigationBarItem(
+      icon: Icon(
+        IconBroken.User,
+      ),
+      label: 'Users',
+    ),
+
     // New post
     BottomNavigationBarItem(
       icon: Icon(
-        IconBroken.Paper_Upload,
+        Icons.person,
       ),
-      label: 'Add',
+      label: 'Profile',
     ),
-    // Users
-    BottomNavigationBarItem(
-      icon: Icon(IconBroken.User),
-      label: 'Users',
-    ),
-    // Settings
+
     BottomNavigationBarItem(
       icon: Icon(
-        IconBroken.Setting,
+        Icons.settings,
       ),
       label: 'Settings',
     ),
   ];
-
-  // Cover image + profile image section
-  ImagePicker picker = ImagePicker();
-  late XFile pickedFile; // Used to pick actual image from gallery or camera
-
-  File coverImage = noImageFile;
-  String coverImageURL = noImageURL;
-
-  File profileImage = noImageFile;
-  String profileImageURL = noImageURL;
-
-  void pickImage({
-    required bool isProfile,
-  }) {
-    // Pick cover image from gallery
-    picker.pickImage(source: ImageSource.gallery).then((value) {
-      pickedFile = value!;
-      // Assign the picked image to variable
-      isProfile
-          ? profileImage = File(pickedFile.path)
-          : coverImage = File(pickedFile.path);
-      print("pickedFile.path = ${pickedFile.path}");
-      emit(PickImageSuccessState());
-      getImageURL(
-        isProfile: isProfile,
-      );
-    }).catchError((error) {
-      emit(PickImageErrorState());
-    });
-  }
-
-  void getImageURL({
-    required bool isProfile,
-  }) {
-    // Specify the path of the image in firebase storage and store it in variable
-    final imagePath = storageRef.child(isProfile
-        ? 'users/profile/${Uri.file(profileImage.path).pathSegments.last}'
-        : 'users/cover/${Uri.file(coverImage.path).pathSegments.last}');
-
-    // Upload image to firebase storage
-    imagePath
-        .putFile(isProfile ? profileImage : coverImage)
-        .then((takeSnapShot) {
-      // Get image download URL
-      takeSnapShot.ref.getDownloadURL().then((downloadURL) {
-        // Store image download URL in variable
-        isProfile ? profileImageURL = downloadURL : coverImageURL = downloadURL;
-        emit(UploadImageSuccessState());
-      }).catchError((error) {
-        emit(GetDownloadURLErrorState());
-      });
-    }).catchError((error) {
-      emit(UploadImageErrorState());
-    });
-  }
-
-  void updateUserData({
-    required String name,
-    required String bio,
-    required String phone,
-  }) {
-    usersDB.doc(uid).update(
-      {
-        'name': name,
-        'bio': bio,
-        'phone': phone,
-        'coverImage': coverImageURL,
-        'profileImage': profileImageURL,
-      },
-    ).then((value) {
-      getUserData();
-      emit(UpdateUserDataSuccessState());
-    }).catchError((error) {
-      emit(UpdateUserDataErrorState(error.toString()));
-    });
-  }
 }
