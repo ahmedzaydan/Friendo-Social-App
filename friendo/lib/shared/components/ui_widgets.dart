@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:friendo/shared/components/post_widgets.dart';
 
 import '../../models/comment_model.dart';
 import '../../models/user_model.dart';
 import '../../modules/posts/cubit/post_cubit.dart';
+import '../../modules/posts/cubit/post_states.dart';
 import 'constants.dart';
 
 class UIWidgets {
@@ -238,63 +240,75 @@ class UIWidgets {
     required bool isLikeAction,
     Widget widget = const SizedBox(),
   }) {
-    final PostCubit postCubit = PostCubit.getPostCubit(context);
-    List<dynamic> list = [];
-    isLikeAction
-        ? list = postCubit.likers[postId]!
-        : list = postCubit.commentModels[postId]!.values.toList();
-    UserModel authorModel =
-        postCubit.userModels[postCubit.postModels[postId]!.authorId]!;
-    bool isCurrentUser = authorModel.uid == currentUserId;
-    List<CommentModel> comments =
-        postCubit.commentModels[postId]!.values.toList();
     showModalBottomSheet(
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
       builder: (context) {
-        return Container(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: Column(
-            children: [
-              // Close button
-              Container(
-                height: 5,
-                width: 50,
-                margin: const EdgeInsets.only(
-                  top: 30.0,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey[400],
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: list.length,
-                  itemBuilder: (context, index) {
-                    Widget widgetToBuild;
-                    isLikeAction
-                        ? widgetToBuild = PostWidgets.buildUserInfo(
-                            context: context,
-                            userModel: postCubit
-                                .userModels[postCubit.likers[postId]![index]]!,
-                            isCurrentUser: isCurrentUser,
-                          )
-                        : widgetToBuild = PostWidgets.buildComment(
-                            context: context,
-                            commentModel: comments[index],
-                            authorModel: authorModel,
-                            isCurrentUser: isCurrentUser,
-                          );
-                    return widgetToBuild;
-                  },
-                ),
-              ),
-              widget,
-            ],
+        return Scaffold(
+          backgroundColor: Colors.grey[200],
+          body: BlocConsumer<PostCubit, PostStates>(
+            listener: (context, state) {},
+            builder: (context, state) {
+              final PostCubit postCubit = PostCubit.getPostCubit(context);
+              List<dynamic> list = [];
+              isLikeAction
+                  ? list = postCubit.likers[postId]!
+                  : list = postCubit.commentModels[postId]!.values.toList();
+              UserModel authorModel =
+                  postCubit.userModels[postCubit.postModels[postId]!.authorId]!;
+              bool isCurrentUser = authorModel.uid == currentUserId;
+              List<CommentModel> comments =
+                  postCubit.commentModels[postId]!.values.toList();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Close button
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      height: 5,
+                      width: 50,
+                      margin: const EdgeInsets.only(
+                        top: 20.0,
+                        bottom: 10.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[400],
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: list.length,
+                      itemBuilder: (context, index) {
+                        Widget widgetToBuild;
+                        isLikeAction
+                            ? widgetToBuild = PostWidgets.buildUserInfo(
+                                context: context,
+                                userModel: postCubit.userModels[
+                                    postCubit.likers[postId]![index]]!,
+                                isCurrentUser: isCurrentUser,
+                              )
+                            : widgetToBuild = PostWidgets.buildComment(
+                                context: context,
+                                commentModel: comments[index],
+                                authorModel: authorModel,
+                                isCurrentUser: isCurrentUser,
+                              );
+                        return Align(
+                          alignment: Alignment.centerLeft,
+                          child: widgetToBuild,
+                        );
+                      },
+                    ),
+                  ),
+
+                  widget,
+                ],
+              );
+            },
           ),
         );
       },

@@ -1,6 +1,5 @@
-// ignore_for_file: use_build_context_synchronously, avoid_print
-
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:friendo/models/comment_model.dart';
 import 'package:friendo/models/post_model.dart';
@@ -31,9 +30,15 @@ class PostWidgets {
     bool isLiked = postCubit.likedPosts[postModel.postId] ?? false;
 
     return Card(
+      color: Colors.grey[200],
       elevation: 10,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          bottomLeft: Radius.circular(8),
+          bottomRight: Radius.circular(20),
+          topRight: Radius.circular(8),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(10.0),
@@ -153,12 +158,49 @@ class PostWidgets {
                 Expanded(
                   child: InkWell(
                     onTap: () {
-                      // UIWidgets.customShowModalBottomSheet(
-                      //   context: context,
-                      //   postId: postModel.postId!,
-                      //   isLikeAction: false,
-                      //   widget:,
-                      // );
+                      TextEditingController commentController =
+                          TextEditingController();
+
+                      UIWidgets.customShowModalBottomSheet(
+                        isLikeAction: false,
+                        postId: postModel.postId!,
+                        context: context,
+                        widget: Container(
+                          width: double.infinity,
+                          color: Colors.grey[200],
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: UIWidgets.customTextFormField(
+                                    textController: commentController,
+                                    hint: "Write a comment....",
+                                    context: context,
+                                    // autofocus: false,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    postCubit.addComment(
+                                      postId: postModel.postId!,
+                                      comment: commentController.text,
+                                      publishDate: postCubit.getPublishDate(),
+                                      context: context,
+                                      postModelIndex: postModelIndex,
+                                    );
+                                    commentController.clear();
+                                  },
+                                  icon: const Icon(
+                                    Icons.send,
+                                    color: Colors.amber,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -482,7 +524,7 @@ class PostWidgets {
     bool isCurrentUser = false,
     VoidCallback? onTap,
   }) {
-    return ListTile(
+    return GestureDetector(
       onTap: onTap ??
           () {
             Widget widget = PostWidgets.buildProfileScreen(
@@ -495,14 +537,23 @@ class PostWidgets {
               destination: widget,
             );
           },
-      leading: CircleAvatar(
-        radius: 20.0,
-        backgroundImage: NetworkImage(
-          userModel.profileImage!,
-        ),
-      ),
-      title: Text(
-        userModel.username!,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            radius: 15.0,
+            backgroundImage: NetworkImage(
+              userModel.profileImage!,
+            ),
+          ),
+          UIWidgets.hSeparator(),
+          Text(
+            userModel.username!,
+            style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+          ),
+        ],
       ),
     );
   }
@@ -523,43 +574,164 @@ class PostWidgets {
     required BuildContext context,
     bool isCurrentUser = false,
   }) {
+    bool isLiked = true;
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Colors.grey,
-          ),
-          borderRadius: BorderRadius.circular(10.0),
-        ),
+      padding: const EdgeInsets.all(10.0),
+      child: IntrinsicWidth(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Author info
-            buildUserInfo(
-              context: context,
-              userModel: authorModel,
-              isCurrentUser: isCurrentUser,
+            // Comment author info and content
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 4,
+                    offset: const Offset(0, 3), // changes position of shadow
+                  ),
+                ],
+                border: Border.all(
+                  color: Colors.grey,
+                ),
+                color: Colors.grey[200],
+                borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    bottomLeft: Radius.circular(8),
+                    bottomRight: Radius.circular(20),
+                    topRight: Radius.circular(8)),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    color: Colors.transparent,
+                    padding: const EdgeInsets.only(right: 0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // Author info
+                        buildUserInfo(
+                          context: context,
+                          userModel: authorModel,
+                          isCurrentUser: isCurrentUser,
+                        ),
+
+                        if (authorModel.uid! == currentUserId)
+                          PopupMenuButton<String>(
+                            itemBuilder: (context) {
+                              return <PopupMenuEntry<String>>[
+                                const PopupMenuItem<String>(
+                                  value: 'Edit',
+                                  child: Text('Edit'),
+                                ),
+                                const PopupMenuItem<String>(
+                                  value: 'Delete',
+                                  child: Text('Delete'),
+                                ),
+                              ];
+                            },
+                            onSelected: (String value) {
+                              // Handle the selected option
+                              switch (value) {
+                                case 'Edit':
+                                  if (kDebugMode) print('Edit');
+                                  break;
+                                case 'Delete':
+                                  if (kDebugMode) print('Delete');
+                                  break;
+                              }
+                            },
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: EdgeInsets.zero,
+                            child: Icon(
+                              Icons.more_vert,
+                              color: Colors.grey[800],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  UIWidgets.vSeparator(height: 5.0),
+
+                  // Comment content
+                  Padding(
+                    padding: const EdgeInsets.only(left: 5.0),
+                    child: Text(
+                      commentModel.comment,
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(),
+                    ),
+                  ),
+                ],
+              ),
             ),
 
             UIWidgets.vSeparator(height: 5.0),
 
-            // Comment content
-            Text(
-              commentModel.comment,
-              style: Theme.of(context).textTheme.bodyLarge!,
-            ),
             // Comment publish date + like
-            Row(
-              children: [
-                Text(
-                  commentModel.publishDate,
-                ),
-                // Likes count
-                Text(
-                  "${commentModel.likesCount} Likes",
-                ),
-                // Like button
-              ],
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        PostCubit.getPostCubit(context).parsePublishData(
+                            publishDate: commentModel.publishDate),
+                      ),
+
+                      // Like button
+                      TextButton(
+                        onPressed: () {},
+                        style: ButtonStyle(
+                          padding:
+                              MaterialStateProperty.all<EdgeInsetsGeometry>(
+                            const EdgeInsets.only(left: 5.0),
+                          ),
+                          minimumSize:
+                              MaterialStateProperty.all<Size>(const Size(0, 0)),
+                        ),
+                        child: Text(
+                          isLiked ? 'Liked' : 'Like',
+                          style: TextStyle(
+                            color: isLiked ? Colors.red : Colors.blue,
+                          ),
+                        ),
+                      ),
+
+                      // Reply button
+                      TextButton(
+                        onPressed: () {},
+                        style: ButtonStyle(
+                          padding:
+                              MaterialStateProperty.all<EdgeInsetsGeometry>(
+                            const EdgeInsets.only(left: 5.0),
+                          ),
+                          minimumSize:
+                              MaterialStateProperty.all<Size>(const Size(0, 0)),
+                        ),
+                        child: const Text(
+                          'Reply',
+                          style: TextStyle(
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Likes count
+                  Text(
+                    "${commentModel.likesCount} Likes",
+                  ),
+                  // Like button
+                ],
+              ),
             ),
           ],
         ),

@@ -5,6 +5,7 @@ import 'package:friendo/layout/cubit/friendo_cubit.dart';
 import 'package:friendo/shared/components/ui_widgets.dart';
 
 import '../modules/posts/new_post_screen.dart';
+import '../temp.dart';
 
 class HomeLayoutScreen extends StatelessWidget {
   const HomeLayoutScreen({Key? key}) : super(key: key);
@@ -28,6 +29,15 @@ class HomeLayoutScreen extends StatelessWidget {
               title: "Home Layout Screen",
               hasLeading: false,
               actions: [
+                IconButton(
+                  onPressed: () {
+                    UIWidgets.navigateTo(context: context, destination: const Temp());
+                  },
+                  icon: const Icon(
+                    Icons.image_not_supported_rounded,
+                    color: Colors.white,
+                  ),
+                ),
                 IconButton(
                   onPressed: () {},
                   icon: const Icon(

@@ -1,6 +1,6 @@
-// ignore_for_file: avoid_print
 
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/modules/posts/cubit/post_cubit.dart';
@@ -19,7 +19,9 @@ class FeedsScreen extends StatelessWidget {
     return BlocConsumer<PostCubit, PostStates>(
       listener: (context, state) {
         if (state is GetPostsInfoErrorState) {
-          print("error: ${state.error}");
+          if (kDebugMode) {
+            print("error: ${state.error}");
+          }
         }
       },
       builder: (context, state) {

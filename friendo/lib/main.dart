@@ -9,7 +9,7 @@ import 'package:friendo/shared/bloc_observer.dart';
 import 'package:friendo/shared/components/constants.dart';
 import 'package:friendo/shared/network/local/cache_controller.dart';
 import 'package:friendo/shared/styles/themes.dart';
-import 'package:friendo/temp.dart';
+// import 'package:friendo/temp.dart';
 
 import 'modules/authentication/cubit/auth_cubit.dart';
 

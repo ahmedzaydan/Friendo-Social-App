@@ -7,6 +7,7 @@ import 'package:friendo/layout/cubit/friendo_cubit.dart';
 import 'package:friendo/models/comment_model.dart';
 import 'package:friendo/models/post_model.dart';
 import 'package:friendo/modules/posts/cubit/post_states.dart';
+import 'package:intl/intl.dart';
 // import 'package:friendo/shared/components/custom_widgets.dart';
 
 import '../../../models/user_model.dart';
@@ -39,11 +40,6 @@ class PostCubit extends Cubit<PostStates> {
   void removePostImage() {
     postImageFile = File("");
     emit(RemovePostImageState());
-  }
-
-  String getPublishDate() {
-    DateTime now = DateTime.now();
-    return "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}";
   }
 
   final postsCollection = FirebaseFirestore.instance.collection('posts');
@@ -126,6 +122,38 @@ class PostCubit extends Cubit<PostStates> {
     return UserModel.fromJson(json: userDocument.data()!);
   }
 
+  String getPublishDate() {
+    DateTime now = DateTime.now();
+    return "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}";
+  }
+
+  String parsePublishData({
+    required String publishDate,
+  }) {
+    DateTime now = DateTime.now();
+    DateTime publishDateTime = DateFormat('MM/dd/yyyy H:mm').parse(publishDate);
+    Duration difference = now.difference(publishDateTime);
+
+    if (difference.inDays >= 365) {
+      int years = (difference.inDays / 365).floor();
+      return "$years y${years > 1 ? 's' : ''}";
+    } else if (difference.inDays >= 30) {
+      int months = (difference.inDays / 30).floor();
+      return "$months mo${months > 1 ? 's' : ''}";
+    } else if (difference.inDays >= 7) {
+      int weeks = (difference.inDays / 7).floor();
+      return "$weeks w${weeks > 1 ? 's' : ''}";
+    } else if (difference.inDays > 0) {
+      return "${difference.inDays} d${difference.inDays > 1 ? 's' : ''}";
+    } else if (difference.inHours > 0) {
+      return "${difference.inHours} h${difference.inHours > 1 ? 's' : ''}";
+    } else if (difference.inMinutes > 0) {
+      return "${difference.inMinutes} m${difference.inMinutes > 1 ? 's' : ''}";
+    } else {
+      return "Just now";
+    }
+  }
+
   /// Likes section ***************************************************************************************************
   String likesCollectionName = 'likes';
 
@@ -204,7 +232,7 @@ class PostCubit extends Cubit<PostStates> {
   }
 
   /// Comments section ***************************************************************************************************
-
+  String commentsCollectionName = 'comments';
   Map<String, Map<String, CommentModel>> commentModels = {};
 
   Future<Map<String, CommentModel>> getPostComments({
@@ -231,7 +259,6 @@ class PostCubit extends Cubit<PostStates> {
     return commentsMap;
   }
 
-  String commentsCollectionName = 'comments';
   void addComment({
     required String postId,
     required String comment,
@@ -272,6 +299,7 @@ class PostCubit extends Cubit<PostStates> {
     }
   }
 
+  /// Update post section ***************************************************************************************************
   void updatePostModels({
     required String postId,
   }) async {
