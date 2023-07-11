@@ -6,10 +6,11 @@ import 'package:friendo/models/post_model.dart';
 import 'package:friendo/shared/components/ui_widgets.dart';
 import 'package:friendo/shared/components/constants.dart';
 
-import '../../models/user_model.dart';
-import '../../modules/edit_profile_screen.dart';
-import '../../modules/posts/cubit/post_cubit.dart';
-import '../../modules/posts/new_post_screen.dart';
+import '../../../models/user_model.dart';
+import '../../../shared/components/custom_widgets.dart';
+import '../../edit_profile_screen.dart';
+import '../cubit/post_cubit.dart';
+import '../posts_screens/new_post_screen.dart';
 
 class PostWidgets {
   static Widget buildPostCard({
@@ -30,7 +31,7 @@ class PostWidgets {
     bool isLiked = postCubit.likedPosts[postModel.postId] ?? false;
 
     return Card(
-      color: Colors.grey[200],
+      color: Colors.deepPurple[40],
       elevation: 10,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
@@ -298,8 +299,8 @@ class PostWidgets {
                       children: [
                         const Icon(
                           size: iconSize * 1.5,
-                          Icons.comment_outlined,
-                          color: Colors.amber,
+                          Icons.comment_rounded,
+                          color: Colors.black45,
                         ),
                         UIWidgets.hSeparator(
                           width: 5.0,
@@ -518,45 +519,7 @@ class PostWidgets {
     );
   }
 
-  static Widget buildUserInfo({
-    required BuildContext context,
-    required UserModel userModel,
-    bool isCurrentUser = false,
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap ??
-          () {
-            Widget widget = PostWidgets.buildProfileScreen(
-              context: context,
-              userModel: userModel,
-              isCurrentUser: isCurrentUser,
-            );
-            UIWidgets.navigateTo(
-              context: context,
-              destination: widget,
-            );
-          },
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CircleAvatar(
-            radius: 15.0,
-            backgroundImage: NetworkImage(
-              userModel.profileImage!,
-            ),
-          ),
-          UIWidgets.hSeparator(),
-          Text(
-            userModel.username!,
-            style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  fontWeight: FontWeight.w500,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
+ 
 
   static Widget buildLikeButton({
     required bool isLiked,
@@ -614,7 +577,7 @@ class PostWidgets {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Author info
-                        buildUserInfo(
+                        CustomWidgets.buildUserInfo(
                           context: context,
                           userModel: authorModel,
                           isCurrentUser: isCurrentUser,

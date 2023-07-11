@@ -4,7 +4,7 @@ import 'package:friendo/layout/cubit/freindo_states.dart';
 import 'package:friendo/layout/cubit/friendo_cubit.dart';
 import 'package:friendo/shared/components/ui_widgets.dart';
 
-import '../modules/posts/new_post_screen.dart';
+import '../modules/posts/posts_screens/new_post_screen.dart';
 import '../temp.dart';
 
 class HomeLayoutScreen extends StatelessWidget {
@@ -31,7 +31,8 @@ class HomeLayoutScreen extends StatelessWidget {
               actions: [
                 IconButton(
                   onPressed: () {
-                    UIWidgets.navigateTo(context: context, destination: const Temp());
+                    UIWidgets.navigateTo(
+                        context: context, destination: const Temp());
                   },
                   icon: const Icon(
                     Icons.image_not_supported_rounded,
@@ -61,7 +62,10 @@ class HomeLayoutScreen extends StatelessWidget {
             bottomNavigationBar: BottomNavigationBar(
               currentIndex: friendoCubit.currentIndex,
               onTap: (index) {
-                friendoCubit.changeCurrentIndex(index: index);
+                friendoCubit.changeCurrentIndex(
+                  index: index,
+                  context: context,
+                );
               },
               items: friendoCubit.bottomNavBarItems,
             ));

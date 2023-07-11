@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/modules/posts/cubit/post_cubit.dart';
 import 'package:friendo/modules/posts/cubit/post_states.dart';
-import 'package:friendo/shared/components/post_widgets.dart';
+import 'package:friendo/modules/posts/components.dart/post_widgets.dart';
 
-import '../../models/post_model.dart';
-import '../../shared/components/ui_widgets.dart';
+import '../../../models/post_model.dart';
+import '../../../shared/components/ui_widgets.dart';
 
 class FeedsScreen extends StatelessWidget {
   const FeedsScreen({super.key});

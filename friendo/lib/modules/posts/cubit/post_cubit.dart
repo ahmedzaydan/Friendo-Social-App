@@ -136,19 +136,19 @@ class PostCubit extends Cubit<PostStates> {
 
     if (difference.inDays >= 365) {
       int years = (difference.inDays / 365).floor();
-      return "$years y${years > 1 ? 's' : ''}";
+      return "$years y";
     } else if (difference.inDays >= 30) {
       int months = (difference.inDays / 30).floor();
-      return "$months mo${months > 1 ? 's' : ''}";
+      return "$months mo";
     } else if (difference.inDays >= 7) {
       int weeks = (difference.inDays / 7).floor();
-      return "$weeks w${weeks > 1 ? 's' : ''}";
+      return "$weeks w";
     } else if (difference.inDays > 0) {
-      return "${difference.inDays} d${difference.inDays > 1 ? 's' : ''}";
+      return "${difference.inDays} d";
     } else if (difference.inHours > 0) {
-      return "${difference.inHours} h${difference.inHours > 1 ? 's' : ''}";
+      return "${difference.inHours} h";
     } else if (difference.inMinutes > 0) {
-      return "${difference.inMinutes} m${difference.inMinutes > 1 ? 's' : ''}";
+      return "${difference.inMinutes} m";
     } else {
       return "Just now";
     }

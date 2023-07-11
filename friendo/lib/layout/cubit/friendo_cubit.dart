@@ -10,8 +10,10 @@ import 'package:friendo/modules/profile_screen.dart';
 import 'package:friendo/shared/components/constants.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../../modules/chats_screen.dart';
-import '../../modules/posts/feeds_screen.dart';
+import '../../modules/chats/chats_screen.dart';
+import '../../modules/chats/cubit/chats_cubit.dart';
+import '../../modules/posts/cubit/post_cubit.dart';
+import '../../modules/posts/posts_screens/feeds_screen.dart';
 import '../../modules/settings_screen.dart';
 import '../../modules/users_screen.dart';
 import '../../shared/styles/icon_broken.dart';
@@ -39,7 +41,13 @@ class FriendoCubit extends Cubit<FriendoStates> {
 
   void changeCurrentIndex({
     required int index,
+    required BuildContext context,
   }) {
+    if (index == 0) {
+      PostCubit.getPostCubit(context).getPostsInfo();
+    } else if (index == 1) {
+      ChatsCubit.getChatsCubit(context).getUsers();
+    }
     currentIndex = index;
     emit(ChangeCurrentIndexState());
   }

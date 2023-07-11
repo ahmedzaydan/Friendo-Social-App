@@ -4,8 +4,8 @@ import 'package:friendo/modules/posts/cubit/post_cubit.dart';
 
 import 'package:friendo/shared/components/constants.dart';
 
-import '../../shared/components/ui_widgets.dart';
-import 'cubit/post_states.dart';
+import '../../../shared/components/ui_widgets.dart';
+import '../cubit/post_states.dart';
 
 class NewPostScreen extends StatelessWidget {
   NewPostScreen({super.key});

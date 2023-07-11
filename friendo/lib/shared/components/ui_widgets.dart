@@ -1,28 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:friendo/shared/components/post_widgets.dart';
+import 'package:friendo/modules/posts/components.dart/post_widgets.dart';
 
 import '../../models/comment_model.dart';
 import '../../models/user_model.dart';
 import '../../modules/posts/cubit/post_cubit.dart';
 import '../../modules/posts/cubit/post_states.dart';
 import 'constants.dart';
+import 'custom_widgets.dart';
 
 class UIWidgets {
   static AppBar customAppBar({
     required BuildContext context,
-    required String title,
+    String title = '',
+    Widget? titleWidget,
     List<Widget>? actions,
     bool hasLeading = true,
   }) {
     return AppBar(
-      title: Text(
-        title,
-        style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-              color: Colors.white,
-            ),
-      ),
+      title: titleWidget ??
+          Text(
+            title,
+            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                  color: Colors.white,
+                ),
+          ),
       leading: hasLeading
           ? IconButton(
               onPressed: () {
@@ -87,7 +90,7 @@ class UIWidgets {
     Function(String value)? myOnChanged,
     VoidCallback? myOnTap,
     double borderRadius = 15.0,
-    bool myEnabled = true,
+    bool? myEnabled,
     bool disableBorder = false,
     int? maxLines,
     bool autofocus = false,
@@ -103,11 +106,11 @@ class UIWidgets {
       decoration: InputDecoration(
         // hintStyle: Theme.of(context).textTheme.bodyLarge,
         prefixIcon: prefixIcon,
-        labelText: label,
-        hintText: hint,
-        hintStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(
-              color: Colors.grey,
-            ),
+        labelText: hint,
+        // label: Text(hint),
+        // hintStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(
+        //       color: Colors.grey,
+        //     ),
         suffixIcon: suffixIcon,
         border: disableBorder
             ? InputBorder.none
@@ -285,7 +288,7 @@ class UIWidgets {
                       itemBuilder: (context, index) {
                         Widget widgetToBuild;
                         isLikeAction
-                            ? widgetToBuild = PostWidgets.buildUserInfo(
+                            ? widgetToBuild = CustomWidgets.buildUserInfo(
                                 context: context,
                                 userModel: postCubit.userModels[
                                     postCubit.likers[postId]![index]]!,

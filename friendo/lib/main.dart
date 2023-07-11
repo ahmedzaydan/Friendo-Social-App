@@ -4,12 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/layout/cubit/friendo_cubit.dart';
 import 'package:friendo/layout/home_layout.dart';
 import 'package:friendo/modules/authentication/login_screen.dart';
+import 'package:friendo/modules/chats/cubit/chats_cubit.dart';
 import 'package:friendo/modules/posts/cubit/post_cubit.dart';
 import 'package:friendo/shared/bloc_observer.dart';
 import 'package:friendo/shared/components/constants.dart';
 import 'package:friendo/shared/network/local/cache_controller.dart';
 import 'package:friendo/shared/styles/themes.dart';
-// import 'package:friendo/temp.dart';
 
 import 'modules/authentication/cubit/auth_cubit.dart';
 
@@ -41,6 +41,7 @@ class FriendoApp extends StatelessWidget {
         BlocProvider(
             create: (context) => FriendoCubit()..getCurrentUserModel()),
         BlocProvider(create: (context) => PostCubit()..getPostsInfo()),
+        BlocProvider(create: (context) => ChatsCubit()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: true,

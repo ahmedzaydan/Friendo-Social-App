@@ -5,8 +5,10 @@ import 'color.dart';
 
 ThemeData lightTheme() {
   return ThemeData(
+    useMaterial3: true,
+
     // control scaffold
-    scaffoldBackgroundColor: lightThemeColor,
+    scaffoldBackgroundColor: Colors.white,
 
     // control appBar
     appBarTheme: AppBarTheme(
@@ -17,7 +19,7 @@ ThemeData lightTheme() {
       ),
 
       elevation: 0,
-      backgroundColor: Colors.blue,
+      backgroundColor: lightThemeColor,
       iconTheme: const IconThemeData(
         color: Colors.black,
       ),
@@ -68,7 +70,6 @@ ThemeData lightTheme() {
 }
 
 ThemeData darkTheme() {
-  
   return ThemeData(
     // control scaffold
     scaffoldBackgroundColor: darkThemeColor,

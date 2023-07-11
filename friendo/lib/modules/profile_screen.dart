@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:friendo/shared/components/constants.dart';
-import 'package:friendo/shared/components/post_widgets.dart';
+import 'package:friendo/modules/posts/components.dart/post_widgets.dart';
 
 // ignore: must_be_immutable
 class ProfileScreen extends StatelessWidget {

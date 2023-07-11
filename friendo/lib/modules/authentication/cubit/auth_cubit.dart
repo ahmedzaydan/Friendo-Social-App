@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/models/user_model.dart';
 import 'package:friendo/modules/authentication/cubit/auth_states.dart';
+import 'package:friendo/modules/chats/cubit/chats_cubit.dart';
 import 'package:friendo/modules/posts/cubit/post_cubit.dart';
 import 'package:friendo/shared/components/ui_widgets.dart';
 
@@ -35,6 +36,7 @@ class AuthCubit extends Cubit<AuthStates> {
       currentUserId = userCredential.user!.uid;
       FriendoCubit.getFriendoCubit(context).getCurrentUserModel();
       PostCubit.getPostCubit(context).getPostsInfo();
+      ChatsCubit.getChatsCubit(context).getUsers();
     }).catchError((error) {
       emit(LoginErrorState(error.toString()));
     });
