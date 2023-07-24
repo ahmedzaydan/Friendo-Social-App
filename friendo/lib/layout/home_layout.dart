@@ -1,11 +1,12 @@
+import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/layout/cubit/freindo_states.dart';
 import 'package:friendo/layout/cubit/friendo_cubit.dart';
 import 'package:friendo/shared/components/ui_widgets.dart';
+import 'package:friendo/shared/styles/color.dart';
 
 import '../modules/posts/posts_screens/new_post_screen.dart';
-import '../temp.dart';
 
 class HomeLayoutScreen extends StatelessWidget {
   const HomeLayoutScreen({Key? key}) : super(key: key);
@@ -22,53 +23,64 @@ class HomeLayoutScreen extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        FriendoCubit friendoCubit = FriendoCubit.getFriendoCubit(context);
+        var cubit = FriendoCubit.getFriendoCubit(context);
         return Scaffold(
-            appBar: UIWidgets.customAppBar(
-              context: context,
-              title: "Home Layout Screen",
-              hasLeading: false,
-              actions: [
-                IconButton(
-                  onPressed: () {
-                    UIWidgets.navigateTo(
-                        context: context, destination: const Temp());
+          backgroundColor: Colors.white,
+          body: Stack(
+            children: [
+              Container(
+                margin: EdgeInsets.only(
+                  bottom: MediaQuery.sizeOf(context).height * 0.09,
+                ),
+                child: cubit.bottomNavBarScreens[cubit.currentIndex],
+              ),
+              // Curved bottom nav bar
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: CurvedNavigationBar(
+                  index: cubit.currentIndex,
+                  items: cubit.bottomNavBarItems,
+                  onTap: (index) {
+                    cubit.changeCurrentIndex(
+                      index: index,
+                      context: context,
+                    );
                   },
-                  icon: const Icon(
-                    Icons.image_not_supported_rounded,
-                    color: Colors.white,
-                  ),
+                  backgroundColor: Colors.transparent,
+                  color: color2,
+                  buttonBackgroundColor: color4,
+                  height: MediaQuery.sizeOf(context).height * 0.08,
                 ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.notifications,
-                    color: Colors.white,
-                  ),
-                ),
-                UIWidgets.hSeparator(
-                  width: 5,
-                ),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.search,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            body: friendoCubit.bottomNavBarScreens[friendoCubit.currentIndex],
-            bottomNavigationBar: BottomNavigationBar(
-              currentIndex: friendoCubit.currentIndex,
-              onTap: (index) {
-                friendoCubit.changeCurrentIndex(
-                  index: index,
-                  context: context,
-                );
-              },
-              items: friendoCubit.bottomNavBarItems,
-            ));
+              ),
+
+              // if (
+              //     cubit.currentIndex == 0 ||
+              //       cubit.currentIndex == 2
+              //     )
+              //   Positioned(
+              //     bottom: 80,
+              //     right: 5,
+              //     child: FloatingActionButton(
+              //       backgroundColor: color5,
+              //       shape: const CircleBorder(),
+              //       onPressed: () {
+              //         UIWidgets.navigateTo(
+              //           context: context,
+              //           destination: NewPostScreen(),
+              //         );
+              //       },
+              //       child: const Icon(
+              //         Icons.add,
+              //         color: Colors.white,
+              //         size: 35.0,
+              //       ),
+              //     ),
+              //   ),
+            ],
+          ),
+        );
       },
     );
   }
@@ -109,3 +121,5 @@ class HomeLayoutScreen extends StatelessWidget {
                   ),
                 ],
               )*/
+
+

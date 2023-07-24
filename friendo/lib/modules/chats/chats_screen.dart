@@ -1,10 +1,9 @@
-import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:friendo/modules/chats/cubit/chats_cubit.dart';
-import 'package:friendo/modules/chats/cubit/chats_states.dart';
+import 'package:friendo/layout/cubit/friendo_cubit.dart';
+import 'package:friendo/shared/components/constants.dart';
 import 'package:friendo/shared/components/ui_widgets.dart';
 
+import '../../models/user_model.dart';
 import '../../shared/components/custom_widgets.dart';
 import 'chat_screen.dart';
 
@@ -13,37 +12,51 @@ class ChatsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: BlocConsumer<ChatsCubit, ChatsStates>(
-          listener: (context, state) {},
-          builder: (context, state) {
-            final ChatsCubit chatsCubit = ChatsCubit.getChatsCubit(context);
-            return ConditionalBuilder(
-              condition: chatsCubit.users.isNotEmpty,
-              builder: (context) {
-                return ListView.separated(
-                  itemBuilder: (context, index) {
-                    return CustomWidgets.buildUserInfo(
+    return StreamBuilder<Map<String, UserModel>>(
+      stream: FriendoCubit.getFriendoCubit(context).getUserModels(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        if (snapshot.hasError) {
+          return const Center(
+            child: Text(
+              'Error',
+            ),
+          );
+        }
+        // Data is available
+        List<UserModel> users = snapshot.data!.values.toList();
+        return ListView.builder(
+          itemBuilder: (context, index) {
+            if (users[index].uId != currentUId) {
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CustomWidgets.buildUserInfo(
+                  context: context,
+                  userModel: users[index],
+                  imageRadius: 35,
+                  onTap: () {
+                    UIWidgets.navigateTo(
                       context: context,
-                      imageRadius: 25.0,
-                      onTap: () {
-                        UIWidgets.navigateTo(
-                            context: context,
-                            destination: ChatScreen(
-                              receiverModel: chatsCubit.users[index],
-                            ));
-                      },
-                      userModel: chatsCubit.users[index],
+                      destination: ChatScreen(
+                        receiverModel: users[index],
+                      ),
                     );
                   },
-                  separatorBuilder: (context, index) => UIWidgets.vSeparator(),
-                  itemCount: chatsCubit.users.length,
-                );
-              },
-              fallback: (context) => const CircularProgressIndicator(),
-            );
-          }),
+                ),
+              );
+            } else {
+              return const SizedBox(
+                height: 0,
+              );
+            }
+          },
+          itemCount: users.length,
+        );
+      },
     );
   }
 }

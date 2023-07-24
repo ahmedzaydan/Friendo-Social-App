@@ -15,7 +15,7 @@ ThemeData lightTheme() {
       // control status bar
       systemOverlayStyle: SystemUiOverlayStyle(
         statusBarColor: lightThemeColor,
-        statusBarIconBrightness: Brightness.dark,
+        statusBarIconBrightness: Brightness.light,
       ),
 
       elevation: 0,
@@ -61,7 +61,7 @@ ThemeData lightTheme() {
 
     // control bottom navbar
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      elevation: 20,
+      elevation: 0,
       selectedItemColor: lightThemePrimaryColor,
       type: BottomNavigationBarType.fixed,
       unselectedItemColor: Colors.black,

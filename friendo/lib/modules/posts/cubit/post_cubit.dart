@@ -1,4 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
+import 'dart:async';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -8,9 +9,7 @@ import 'package:friendo/models/comment_model.dart';
 import 'package:friendo/models/post_model.dart';
 import 'package:friendo/modules/posts/cubit/post_states.dart';
 import 'package:intl/intl.dart';
-// import 'package:friendo/shared/components/custom_widgets.dart';
 
-import '../../../models/user_model.dart';
 import '../../../shared/components/constants.dart';
 
 class PostCubit extends Cubit<PostStates> {
@@ -73,58 +72,69 @@ class PostCubit extends Cubit<PostStates> {
       await postsCollection.doc(postID).set(postModel.toMap());
       removePostImage(); // Reset post image
       emit(CreatePostSuccessState());
-      getPostsInfo(); // 1 only get new post
+      getPosts(); // 1 only get new post
     } catch (error) {
       emit(CreatePostErrorState(error.toString()));
     }
   }
 
-  /// Get posts section ***************************************************************************************************
-
-  Map<String, PostModel> postModels = {};
-  Map<String, UserModel> userModels = {};
-
-  void getPostsInfo() async {
-    try {
-      postModels = {};
-      var querySnapshot = await postsCollection.get();
-      for (var documentSnapshot in querySnapshot.docs) {
-        PostModel postModel = PostModel.fromJson(
-          json: documentSnapshot.data(),
-        );
-        postModels[postModel.postId!] = postModel;
-
-        // get post author model
-        userModels[postModel.authorId!] = await getUserModel(
-          userId: postModel.authorId!,
-        );
-
-        // get post likers ids
-        likers[postModel.postId!] = await getPostLikers(
-          postId: postModel.postId!,
-        );
-
-        // get post commentModels
-        commentModels[postModel.postId!] = await getPostComments(
-          postId: postModel.postId!,
-        );
-      }
-      emit(GetPostsInfoSuccessState());
-    } catch (error) {
-      emit(GetPostsInfoErrorState(error.toString()));
-    }
+  void updatePost({
+    required PostModel postModel,
+    required String content,
+    String? image,
+    List<String>? tags,
+  }) {
+    postsCollection.doc(postModel.postId).update(
+      {
+        'content': content,
+        'image': image ?? postModel.image,
+        'publishDate': getPublishDate(),
+        'tags': tags ?? postModel.tags,
+      },
+    ).catchError(
+      (error) {
+        emit(UpdatePostErrorState(error.toString()));
+      },
+    );
   }
 
-  Future<UserModel> getUserModel({
-    required String userId,
+  void deletePost({
+    required String postId,
+  }) {
+    postsCollection.doc(postId).delete().catchError(
+      (error) {
+        emit(DeletePostErrorState(error.toString()));
+      },
+    );
+  }
+
+  Stream<List<PostModel>> getPosts() {
+    var streamController = StreamController<List<PostModel>>();
+    postsCollection.snapshots().listen((event) {
+      List<PostModel> postModels = [];
+      for (var element in event.docs) {
+        PostModel postModel = PostModel.fromJson(
+          json: element.data(),
+        );
+        postModels.add(postModel);
+      }
+      streamController.add(postModels);
+    }, onError: (error) {
+      streamController.addError(error.toString());
+    });
+    return streamController.stream;
+  }
+
+  Future<PostModel> getPostModel({
+    required String postId,
   }) async {
-    var userDocument = await usersCollection.doc(userId).get();
-    return UserModel.fromJson(json: userDocument.data()!);
+    var document = await postsCollection.doc(postId).get();
+    return PostModel.fromJson(json: document.data()!);
   }
 
   String getPublishDate() {
     DateTime now = DateTime.now();
-    return "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}";
+    return "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}:${now.second}";
   }
 
   String parsePublishData({
@@ -155,120 +165,99 @@ class PostCubit extends Cubit<PostStates> {
   }
 
   /// Likes section ***************************************************************************************************
-  String likesCollectionName = 'likes';
-
-  void toggleLikeStatus({
+  void toggleLike({
     required String postId,
-    required int postModelIndex,
+    String? commentId,
     required BuildContext context,
-  }) async {
-    // Logic to toggle the like status of the post
-    // - If the post is already liked by the user, unlike it
-    // - If the post is not liked by the user, like it
-
-    var likesCollection = postsCollection.doc(postId).collection('likes');
+  }) {
+    var likesCollection = commentId == null
+        ? postsCollection.doc(postId).collection('likes')
+        : postsCollection
+            .doc(postId)
+            .collection('comments')
+            .doc(commentId)
+            .collection('likes');
     Query query = likesCollection.where(
       FieldPath.documentId,
-      isEqualTo: currentUserId,
+      isEqualTo: currentUId,
     );
-
-    try {
-      final querySnapshot = await query.get(); // Execute the query
-
-      // if querySnapshot.docs.isNotEmpty = true, the post is liked by the user
-      if (querySnapshot.docs.isNotEmpty) {
-        await likesCollection.doc(currentUserId).delete();
-        // Decrement the likesCount field in the post document
-        await postsCollection.doc(postId).update(
-          {'likesCount': FieldValue.increment(-1)},
-        );
-        likedPosts[postId] = false;
-        likers[postId]!.remove(currentUserId);
-      }
-
-      // if querySnapshot.docs.isNotEmpty = false, the post is not liked by the user
-      else {
-        await likesCollection
-            .doc(currentUserId)
-            .set({}); // Add the liker document
-        // Increment the likesCount field in the post document
-        await postsCollection.doc(postId).update(
-          {'likesCount': FieldValue.increment(1)},
-        );
-        likedPosts[postId] = true;
-        likers[postId]!.add(currentUserId!);
-      }
-      updatePostModels(postId: postId);
-      emit(ToggleLikeSuccessState());
-    } catch (error) {
-      emit(ToggleLikeErrorState(error.toString()));
-    }
+    var document = commentId == null
+        ? postsCollection.doc(postId)
+        : postsCollection.doc(postId).collection('comments').doc(commentId);
+    query.get().then(
+      (querySnapshot) {
+        if (querySnapshot.docs.isNotEmpty) {
+          likesCollection.doc(currentUId).delete();
+          document.update(
+            {'likesCount': FieldValue.increment(-1)},
+          );
+        } else {
+          likesCollection.doc(currentUId).set({});
+          document.update(
+            {'likesCount': FieldValue.increment(1)},
+          );
+        }
+      },
+    ).catchError(
+      (error) {
+        emit(ToggleLikeErrorState(error.toString()));
+      },
+    );
   }
 
-  Map<String, bool> likedPosts = {};
-  Map<String, List<String>> likers = {};
-
-  Future<List<String>> getPostLikers({
+  Stream<bool> isLiked({
     required String postId,
-  }) async {
-    List<String> likersIds = [];
-    try {
-      var querySnapshot = await postsCollection
-          .doc(postId)
-          .collection(likesCollectionName)
-          .get();
+    String? commentId,
+  }) {
+    var streamController = StreamController<bool>();
+    var path = commentId == null 
+    ? postsCollection
+        .doc(postId)
+        .collection('likes') 
+    : postsCollection
+            .doc(postId)
+            .collection('comments').doc(commentId).collection('likes');
+        path.doc(currentUId)
+        .snapshots()
+        .listen(
+      (event) {
+        streamController.add(event.exists);
+      },
+      onError: (error) {
+        streamController.addError(error.toString());
+      },
+    );
+    return streamController.stream;
+  }
 
-      for (var likeDocument in querySnapshot.docs) {
-        likersIds.add(likeDocument.id);
-        // check if this post liked by current user, true if liked
-        likedPosts[postId] = likeDocument.id == currentUserId ? true : false;
-        await updateUserModels(userId: likeDocument.id);
-      }
-      emit(GetPostLikesSuccessState());
-    } catch (error) {
-      emit(GetPostLikesErrorState(error.toString()));
-    }
-    return likersIds;
+  Stream<List<String>> getPostLikers({
+    required String postId,
+  }) {
+    var streamController = StreamController<List<String>>();
+    postsCollection.doc(postId).collection('likes').snapshots().listen(
+      (event) {
+        List<String> likers = [];
+        for (var document in event.docs) {
+          likers.add(document.id);
+          // check if this post is liked by the current user
+        }
+        streamController.add(likers);
+      },
+      onError: (error) {
+        streamController.addError(error.toString());
+      },
+    );
+
+    return streamController.stream;
   }
 
   /// Comments section ***************************************************************************************************
-  String commentsCollectionName = 'comments';
-  Map<String, Map<String, CommentModel>> commentModels = {};
-
-  Future<Map<String, CommentModel>> getPostComments({
-    required String postId,
-  }) async {
-    Map<String, CommentModel> commentsMap = {};
-    try {
-      var querySnapshot = await postsCollection
-          .doc(postId)
-          .collection(commentsCollectionName)
-          .get();
-
-      for (var commentDocument in querySnapshot.docs) {
-        CommentModel commentModel = CommentModel.fromJson(
-          json: commentDocument.data(),
-        );
-        commentsMap[commentDocument.id] = commentModel;
-        await updateUserModels(userId: commentModel.authorId);
-      }
-      emit(GetPostCommentsSuccessState());
-    } catch (error) {
-      emit(GetPostCommentsErrorState(error.toString()));
-    }
-    return commentsMap;
-  }
-
   void addComment({
     required String postId,
     required String comment,
     required String publishDate,
-    required BuildContext context,
-    required int postModelIndex,
   }) async {
     try {
-      friendoCubit = FriendoCubit.getFriendoCubit(context);
-
       var commentsCollection =
           postsCollection.doc(postId).collection('comments');
       String commentId = commentsCollection.doc().id;
@@ -278,74 +267,125 @@ class PostCubit extends Cubit<PostStates> {
         postId: postId,
         comment: comment,
         publishDate: publishDate,
-        authorId: currentUserId!,
+        authorId: currentUId!,
       );
       await commentsCollection.doc(commentId).set(commentModel.toMap());
-
       // Update commentsCount field in the post document
       await postsCollection.doc(postId).update(
         {'commentsCount': FieldValue.increment(1)},
       );
-
-      commentModels[postId]![commentId] = commentModel;
-
-      await updateUserModels(userId: currentUserId!);
-
-      updatePostModels(postId: postId);
-
-      emit(CreateCommentSuccessState());
     } catch (error) {
       emit(CreateCommentErrorState(error.toString()));
     }
   }
 
-  /// Update post section ***************************************************************************************************
-  void updatePostModels({
+  Stream<Map<String, CommentModel>> getPostComments({
     required String postId,
-  }) async {
-    try {
-      // Get post data
-      var documentSnapshot = await postsCollection.doc(postId).get();
-      // Get post model
-      PostModel postModel = PostModel.fromJson(json: documentSnapshot.data()!);
-      postModels[postId] = postModel;
-      emit(UpdatePostModelSuccessState());
-    } catch (error) {
-      emit(UpdatePostModelErrorState(error.toString()));
-    }
+  }) {
+    var streamController = StreamController<Map<String, CommentModel>>();
+    postsCollection.doc(postId).collection('comments').snapshots().listen(
+      (event) {
+        Map<String, CommentModel> comments = {};
+        for (var document in event.docs) {
+          comments[document.id] = CommentModel.fromJson(
+            json: document.data(),
+          );
+        }
+        streamController.add(comments);
+      },
+      onError: (error) {
+        streamController.addError(error.toString());
+      },
+    );
+    return streamController.stream;
   }
 
-  Future<void> updateUserModels({
-    required String userId,
-  }) async {
-    if (userModels[userId] != null) {
-      UserModel likerModel = await getUserModel(userId: userId);
-      userModels[userId] = likerModel;
-    }
+  void updateComment({
+    required String postId,
+    required String commentId,
+    required String comment,
+  }) {
+    postsCollection
+        .doc(postId)
+        .collection('comments')
+        .doc(commentId)
+        .update({
+          'comment': comment,
+          'publishDate': getPublishDate(),
+        })
+        .then(
+          (value) {},
+        )
+        .catchError(
+          (error) {
+            emit(UpdateCommentErrorState(error.toString()));
+          },
+        );
   }
-  // bool isKeyboardVisible = false;
-  // bool checkKeyboardVisibility({
-  //   required BuildContext context,
-  // }) {
-  //   emit(CheckKeyboardVisibilityState());
-  //   return View.of(context).viewInsets.bottom > 0;
-  // }
 
-  // void editPost({
-  //   required PostModel postModel,
-  //   String? content,
-  //   String? postImage,
-  //   // int? likesCount,
-  //   // int? commentsCount,
-  // }) {
-  //   try {
-  //     postsCollection.doc(postModel.postID).update({
-  //       'content': content ?? postModel.content,
-  //       'image': postImage ?? postModel.image,
-  //     });
-  //     emit(EditPostSuccessState());
-  //   } catch (error) {
-  //     emit(EditPostErrorState(error.toString()));
-  //   }
-  // }
+  void deleteComment({
+    required String postId,
+    required String commentId,
+  }) {
+    postsCollection
+        .doc(postId)
+        .collection('comments')
+        .doc(commentId)
+        .delete()
+        .then(
+          (value) {},
+        )
+        .catchError(
+      (error) {
+        emit(DeleteCommentErrorState(error.toString()));
+      },
+    );
+  }
+
+  /// Save post section ***************************************************************************************************
+  void toggleSave({
+    required String postId,
+    required int postModelIndex,
+    required BuildContext context,
+  }) async {
+    // Logic to toggle the like status of the post
+    // - If the post is already liked by the user, unlike it
+    // - If the post is not liked by the user, like it
+
+    // var likesCollection = postsCollection.doc(postId).collection('likes');
+    // Query query = likesCollection.where(
+    //   FieldPath.documentId,
+    //   isEqualTo: currentUId,
+    // );
+
+    // try {
+    //   final querySnapshot = await query.get(); // Execute the query
+
+    //   // if querySnapshot.docs.isNotEmpty = true, the post is liked by the user
+    //   if (querySnapshot.docs.isNotEmpty) {
+    //     await likesCollection.doc(currentUId).delete();
+    //     // Decrement the likesCount field in the post document
+    //     await postsCollection.doc(postId).update(
+    //       {'likesCount': FieldValue.increment(-1)},
+    //     );
+    //     likedPosts[postId] = false;
+    //     likers[postId]!.remove(currentUId);
+    //   }
+
+    //   // if querySnapshot.docs.isNotEmpty = false, the post is not liked by the user
+    //   else {
+    //     await likesCollection.doc(currentUId).set({}); // Add the liker document
+    //     // Increment the likesCount field in the post document
+    //     await postsCollection.doc(postId).update(
+    //       {'likesCount': FieldValue.increment(1)},
+    //     );
+    //     likedPosts[postId] = true;
+    //     likers[postId]!.add(currentUId!);
+    //   }
+    //   updatePostModels(postId: postId);
+    //   emit(ToggleLikeSuccessState());
+    // } catch (error) {
+    //   emit(ToggleLikeErrorState(error.toString()));
+    // }
+  }
 }

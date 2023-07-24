@@ -1,22 +1,19 @@
-// ignore_for_file: avoid_print
+import 'dart:async';
 import 'dart:io';
 
+import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/layout/cubit/freindo_states.dart';
 import 'package:friendo/models/user_model.dart';
-import 'package:friendo/modules/profile_screen.dart';
+import 'package:friendo/modules/profile/profile_screen.dart';
 import 'package:friendo/shared/components/constants.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../modules/chats/chats_screen.dart';
-import '../../modules/chats/cubit/chats_cubit.dart';
-import '../../modules/posts/cubit/post_cubit.dart';
+import '../../modules/other_pages/settings_screen.dart';
 import '../../modules/posts/posts_screens/feeds_screen.dart';
-import '../../modules/settings_screen.dart';
-import '../../modules/users_screen.dart';
-import '../../shared/styles/icon_broken.dart';
 
 class FriendoCubit extends Cubit<FriendoStates> {
   FriendoCubit() : super(FriendoInitialState());
@@ -25,34 +22,47 @@ class FriendoCubit extends Cubit<FriendoStates> {
     return BlocProvider.of(context);
   }
 
-  void getCurrentUserModel() async {
-    try {
-      var documentSnapshot = await usersCollection.doc(currentUserId).get();
-      currentUserModel = UserModel.fromJson(json: documentSnapshot.data()!);
-      coverImageURL = currentUserModel!.coverImage!;
-      profileImageURL = currentUserModel!.profileImage!;
-      emit(GetCurrentUserModelSuccessState());
-    } catch (error) {
-      emit(GetCurrentUserModelErrorState(error.toString()));
-    }
-  }
-
-  int currentIndex = 0; // bottom nav bar index
-
-  void changeCurrentIndex({
-    required int index,
-    required BuildContext context,
+  Stream<UserModel> getUserModel({
+    required String userId,
+    bool isCurrentUser = false,
   }) {
-    if (index == 0) {
-      PostCubit.getPostCubit(context).getPostsInfo();
-    } else if (index == 1) {
-      ChatsCubit.getChatsCubit(context).getUsers();
-    }
-    currentIndex = index;
-    emit(ChangeCurrentIndexState());
+    var streamController = StreamController<UserModel>();
+    usersCollection.doc(userId).snapshots().listen((event) {
+      UserModel userModel = UserModel.fromJson(
+        json: event.data()!,
+      );
+      streamController.add(userModel);
+      if (isCurrentUser) {
+        currentUserModel = userModel;
+        coverImageURL = currentUserModel.coverImage!;
+        profileImageURL = currentUserModel.profileImage!;
+      }
+    }, onError: (error) {
+      streamController.addError(error.toString());
+    });
+    return streamController.stream;
   }
 
-  // Cover image + profile image section
+  Stream<Map<String, UserModel>> getUserModels() {
+    var streamController = StreamController<Map<String, UserModel>>();
+    usersCollection.snapshots().listen(
+      (event) {
+        Map<String, UserModel> userModels = {};
+        for (var document in event.docs) {
+          userModels[document.id] = UserModel.fromJson(
+            json: document.data(),
+          );
+        }
+        streamController.add(userModels);
+      },
+      onError: (error) {
+        streamController.addError(error);
+      },
+    );
+    return streamController.stream;
+  }
+
+  /// Cover image + profile image section
   ImagePicker picker = ImagePicker();
 
   File coverImage = File(blankImageURL);
@@ -61,7 +71,7 @@ class FriendoCubit extends Cubit<FriendoStates> {
   File profileImage = File(blankImageURL);
   String profileImageURL = blankImageURL;
 
-  final String initImagePath = 'users/$currentUserId';
+  final String initImagePath = 'users/$currentUId';
 
   // Upload profile/cover image
   void uploadImage({
@@ -129,15 +139,14 @@ class FriendoCubit extends Cubit<FriendoStates> {
   // Send image download URL to Firebase Firestore
   void updateImage() async {
     try {
-      await usersCollection.doc(currentUserId).update({
+      await usersCollection.doc(currentUId).update({
         'coverImage': coverImageURL != blankImageURL
             ? coverImageURL
-            : currentUserModel!.coverImage!,
+            : currentUserModel.coverImage!,
         'profileImage': profileImageURL != blankImageURL
             ? profileImageURL
-            : currentUserModel!.profileImage!,
+            : currentUserModel.profileImage!,
       });
-      getCurrentUserModel();
     } catch (error) {
       emit(UpdateImageErrorState());
     }
@@ -149,62 +158,83 @@ class FriendoCubit extends Cubit<FriendoStates> {
     String? phone,
   }) async {
     try {
-      await usersCollection.doc(currentUserId).update(
+      await usersCollection.doc(currentUId).update(
         {
-          'username': username ?? currentUserModel!.username,
-          'bio': bio ?? currentUserModel!.bio,
-          'phone': phone ?? currentUserModel!.phone,
+          'username': username ?? currentUserModel.username,
+          'bio': bio ?? currentUserModel.bio,
+          'phone': phone ?? currentUserModel.phone,
         },
       );
       emit(UpdateUserDataSuccessState());
-      getCurrentUserModel();
     } catch (error) {
       emit(UpdateUserDataErrorState());
     }
   }
 
-  // BottomNavBar section
+  /// Bottom nav bar section **********************************************************************************
+
+  // bottom nav bar index
+  int currentIndex = 0;
+
+  void changeCurrentIndex({
+    required int index,
+    required BuildContext context,
+  }) {
+    currentIndex = index;
+    emit(ChangeCurrentIndexState());
+  }
+
+  List<String> bottomNavScreensTitles = const [
+    'Feeds',
+    'Chats',
+    // 'Add Post',
+    'Profile',
+    'Settings',
+  ];
   List<Widget> bottomNavBarScreens = [
     const FeedsScreen(),
     const ChatsScreen(),
-    const UsersScreen(),
+    // NewPostScreen(),
     ProfileScreen(),
     const SettingsScreen(),
   ];
 
-  List<BottomNavigationBarItem> bottomNavBarItems = const [
-    BottomNavigationBarItem(
-      icon: Icon(
+  static const TextStyle bottomNavBarTextStyle = TextStyle(
+    color: Colors.white,
+  );
+  static const iconColor = Colors.white;
+  List<CurvedNavigationBarItem> bottomNavBarItems = [
+    const CurvedNavigationBarItem(
+      child: Icon(
         Icons.home,
+        color: iconColor,
       ),
-      label: 'Home',
+      label: 'Feeds',
+      labelStyle: bottomNavBarTextStyle,
     ),
-    BottomNavigationBarItem(
-      icon: Icon(
+    const CurvedNavigationBarItem(
+      child: Icon(
         Icons.chat,
+        color: iconColor,
       ),
       label: 'Chats',
+      labelStyle: bottomNavBarTextStyle,
     ),
-    BottomNavigationBarItem(
-      icon: Icon(
-        IconBroken.User,
-      ),
-      label: 'Users',
-    ),
-
-    // New post
-    BottomNavigationBarItem(
-      icon: Icon(
+    const CurvedNavigationBarItem(
+      child: Icon(
         Icons.person,
+        color: iconColor,
       ),
       label: 'Profile',
+      labelStyle: bottomNavBarTextStyle,
     ),
-
-    BottomNavigationBarItem(
-      icon: Icon(
+    const CurvedNavigationBarItem(
+      child: Icon(
         Icons.settings,
+        color: iconColor,
       ),
       label: 'Settings',
+      labelStyle: bottomNavBarTextStyle,
     ),
   ];
 }

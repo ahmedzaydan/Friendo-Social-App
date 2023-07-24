@@ -1,5 +1,5 @@
 class UserModel {
-  String? uid;
+  String? uId;
   String? username;
   String? email;
   bool? isEmailVerified;
@@ -7,10 +7,11 @@ class UserModel {
   String? profileImage;
   String? coverImage;
   String? bio;
-
+  String? deviceToken;
   UserModel({
-    required this.uid,
-    this.username,
+    required this.uId,
+    required this.deviceToken,
+    required this.username,
     this.email,
     this.phone,
     this.profileImage,
@@ -22,7 +23,8 @@ class UserModel {
   UserModel.fromJson({
     required Map<String, dynamic> json,
   }) {
-    uid = json['uid'];
+    uId = json['uId'];
+    deviceToken = json['deviceToken'];
     username = json['username'];
     email = json['email'];
     isEmailVerified = json['isEmailVerified'];
@@ -34,7 +36,8 @@ class UserModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'uid': uid,
+      'uId': uId,
+      'deviceToken': deviceToken,
       'username': username,
       'email': email,
       'isEmailVerified': isEmailVerified,

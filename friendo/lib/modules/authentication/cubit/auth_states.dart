@@ -30,9 +30,9 @@ class VerifyEmailErrorState extends AuthStates {
 class RegisterLoadingState extends AuthStates {}
 
 class RegisterSuccessState extends AuthStates {
-  final String uid;
+  final String uId;
 
-  RegisterSuccessState(this.uid);
+  RegisterSuccessState(this.uId);
 }
 
 class RegisterErrorState extends AuthStates {

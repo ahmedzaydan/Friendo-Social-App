@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'authentication/cubit/auth_cubit.dart';
-import 'authentication/cubit/auth_states.dart';
+import '../authentication/cubit/auth_cubit.dart';
+import '../authentication/cubit/auth_states.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -21,8 +21,8 @@ class SettingsScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                onTap: () {
-                  authCubit.logout(context: context);
+                onTap: () async {
+                  await authCubit.logout(context: context);
                 },
                 title: Text(
                   "Logout",

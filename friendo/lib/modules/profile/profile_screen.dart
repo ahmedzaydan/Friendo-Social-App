@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:friendo/shared/components/constants.dart';
-import 'package:friendo/modules/posts/components.dart/post_widgets.dart';
+import 'package:friendo/modules/profile/profile_widgets.dart';
+
+import '../../shared/components/constants.dart';
 
 // ignore: must_be_immutable
 class ProfileScreen extends StatelessWidget {
@@ -9,10 +10,10 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return widget ??
-        PostWidgets.buildProfileScreen(
+        ProfileWidgets.buildProfileScreen(
           showAppBar: false,
           context: context,
-          userModel: currentUserModel!,
+          userModel: currentUserModel,
           isCurrentUser: true,
         );
   }

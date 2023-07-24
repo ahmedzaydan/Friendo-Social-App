@@ -8,7 +8,7 @@ class ChatWidgets {
     required MessageModel messageModel,
     required BuildContext context,
   }) {
-    bool isMe = messageModel.senderId == currentUserId!;
+    bool isMe = messageModel.senderId == currentUId!;
     double radius = 8;
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,

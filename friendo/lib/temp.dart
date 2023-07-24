@@ -6,49 +6,61 @@ class Temp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Options Menu Example'),
-        actions: [
-          PopupMenuButton<String>(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+      body: Center(
+        child: GestureDetector(
+          onLongPress: () {
+            // Show the options menu
+            _showOptionsMenu(context);
+          },
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.circular(8.0),
             ),
-            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'option1',
-                child: Text('Option 1'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'option2',
-                child: Text('Option 2'),
-              ),
-              const PopupMenuItem<String>(
-                value: 'option3',
-                child: Text('Option 3'),
-              ),
-            ],
-            onSelected: (String value) {
-              // Handle the selected option
-              switch (value) {
-                case 'option1':
-                  // Handle Option 1
-                  break;
-                case 'option2':
-                  // Handle Option 2
-                  break;
-                case 'option3':
-                  // Handle Option 3
-                  break;
-              }
-            },
-            child: const Icon(Icons.more_vert),
+            child: const Text(
+              'Press and hold for options menu',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
-        ],
+        ),
       ),
-      body: const Center(
-        child: Text('Your App Content'),
-      ),
-      // Add the PopupMenuButton in the AppBar actions
     );
+  }
+
+  void _showOptionsMenu(BuildContext context) {
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RenderBox? itemBox = context.findRenderObject() as RenderBox?;
+    final Offset position =
+        itemBox!.localToGlobal(Offset.zero, ancestor: overlay);
+
+    showMenu(
+      context: context,
+      position: RelativeRect.fromLTRB(position.dx, position.dy, 0, 0),
+      items: <PopupMenuEntry>[
+        const PopupMenuItem(
+          value: 'Option 1',
+          child: Text('Option 1'),
+        ),
+        const PopupMenuItem(
+          value: 'Option 2',
+          child: Text('Option 2'),
+        ),
+        // Add more options as needed
+      ],
+    ).then((value) {
+      if (value != null) {
+        // Handle the selected option
+        switch (value) {
+          case 'Option 1':
+            // Perform action for Option 1
+            break;
+          case 'Option 2':
+            // Perform action for Option 2
+            break;
+        }
+      }
+    });
   }
 }

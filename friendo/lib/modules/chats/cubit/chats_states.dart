@@ -6,11 +6,6 @@ class ChatsLoadingState extends ChatsStates {}
 
 class GetChatsSuccessState extends ChatsStates {}
 
-class GetChatsErrorState extends ChatsStates {
-  final String error;
-  GetChatsErrorState(this.error);
-}
-
 class SendMessageSuccessState extends ChatsStates {}
 
 class SendMessageErrorState extends ChatsStates {
@@ -19,3 +14,5 @@ class SendMessageErrorState extends ChatsStates {
 }
 
 class GetMessagesSuccessState extends ChatsStates {}
+
+class GetUsersSuccessState extends ChatsStates {}

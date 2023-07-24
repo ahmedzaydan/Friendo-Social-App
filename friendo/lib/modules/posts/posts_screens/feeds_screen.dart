@@ -1,13 +1,10 @@
-
-import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:friendo/modules/posts/cubit/post_cubit.dart';
-import 'package:friendo/modules/posts/cubit/post_states.dart';
 import 'package:friendo/modules/posts/components.dart/post_widgets.dart';
+import 'package:friendo/modules/posts/posts_screens/new_post_screen.dart';
+import 'package:friendo/shared/styles/color.dart';
 
-import '../../../models/post_model.dart';
+import '../../../layout/cubit/friendo_cubit.dart';
+import '../../../shared/components/custom_widgets.dart';
 import '../../../shared/components/ui_widgets.dart';
 
 class FeedsScreen extends StatelessWidget {
@@ -15,40 +12,71 @@ class FeedsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var postCubit = PostCubit.getPostCubit(context);
-    return BlocConsumer<PostCubit, PostStates>(
-      listener: (context, state) {
-        if (state is GetPostsInfoErrorState) {
-          if (kDebugMode) {
-            print("error: ${state.error}");
-          }
-        }
-      },
-      builder: (context, state) {
-        return Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: ConditionalBuilder(
-              condition: postCubit.postModels.isNotEmpty,
-              builder: (context) {
-                List<PostModel> posts = postCubit.postModels.values.toList();
-                return ListView.separated(
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: posts.length,
-                  itemBuilder: (context, index) {
-                    return PostWidgets.buildPostCard(
-                      context: context,
-                      postModel: posts[index],
-                      postModelIndex: index,
-                    );
-                  },
-                  separatorBuilder: (context, index) => UIWidgets.vSeparator(),
-                );
-              },
-              fallback: (context) => const Center(
-                    child: CircularProgressIndicator(),
-                  )),
-        );
-      },
+    return PostWidgets.buildPosts(
+      context: context,
+      appBar: CustomWidgets.buildAppBar(
+        context: context,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Camera icon
+            CustomWidgets.buildIcon(
+              icon: Icons.camera_alt_outlined,
+            ),
+
+            // Title
+            Align(
+              alignment: Alignment.center,
+              child: Text(
+                FriendoCubit.getFriendoCubit(context).bottomNavScreensTitles[
+                    FriendoCubit.getFriendoCubit(context).currentIndex],
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CustomWidgets.buildIcon(
+                  icon: Icons.notifications_none_outlined,
+                ),
+                UIWidgets.hSeparator(width: 10),
+                // Search icon
+                CustomWidgets.buildIcon(
+                  icon: Icons.search,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      widget: InkWell(
+        onTap: () {
+          UIWidgets.navigateTo(
+            context: context,
+            destination: NewPostScreen(),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.all(10),
+          height: 50,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(
+              color: color2,
+              width: 1,
+            ),
+          ),
+          padding: const EdgeInsets.all(10),
+          child: Text(
+            'What\'s on your mind, Friendo?',
+            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                  color: Colors.grey[900],
+                ),
+          ),
+        ),
+      ),
     );
   }
 }

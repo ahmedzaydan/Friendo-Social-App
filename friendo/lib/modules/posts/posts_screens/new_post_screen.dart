@@ -4,6 +4,7 @@ import 'package:friendo/modules/posts/cubit/post_cubit.dart';
 
 import 'package:friendo/shared/components/constants.dart';
 
+import '../../../shared/components/custom_widgets.dart';
 import '../../../shared/components/ui_widgets.dart';
 import '../cubit/post_states.dart';
 
@@ -14,6 +15,8 @@ class NewPostScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // return const Placeholder();
+
     return BlocConsumer<PostCubit, PostStates>(
       listener: (context, state) {
         if (state is CreatePostSuccessState) {
@@ -23,58 +26,50 @@ class NewPostScreen extends StatelessWidget {
       builder: (context, state) {
         PostCubit postCubit = PostCubit.getPostCubit(context);
         return Scaffold(
-          appBar: UIWidgets.customAppBar(
-            context: context,
-            title: "Create new post",
-            actions: [
-              UIWidgets.customMaterialButton(
-                width: 100.0,
-                isUpperCase: true,
-                onPressed: () {
-                  postCubit.createPost(
-                    authorId: currentUserId!,
-                    publishDate: postCubit.getPublishDate(),
-                    content: contentController.text,
-                    context: context,
-                  );
-                },
-                text: "Post",
-                context: context,
-              ),
-            ],
-          ),
           body: Padding(
             padding: const EdgeInsets.all(15.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Author info
-                Row(
-                  children: [
-                    // Author profile image
-                    CircleAvatar(
-                      radius: 20.0,
-                      backgroundImage: NetworkImage(
-                        currentUserModel!.profileImage!,
+                // App bar
+                CustomWidgets.buildAppBar(
+                  context: context,
+                  paddingH: 0,
+                  paddingV: 0,
+                  child: Row(
+                    children: [
+                      CustomWidgets.buildIcon(
+                        icon: Icons.arrow_back,
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
                       ),
-                    ),
+                      const Spacer(),
+                      UIWidgets.customMaterialButton(
+                        width: 80.0,
+                        height: 40,
+                        isUpperCase: true,
+                        onPressed: () {
+                          postCubit.createPost(
+                            authorId: currentUId!,
+                            publishDate: postCubit.getPublishDate(),
+                            content: contentController.text,
+                            context: context,
+                          );
+                        },
+                        text: "Post",
+                        context: context,
+                      ),
+                    ],
+                  ),
+                ),
 
-                    UIWidgets.hSeparator(),
-
-                    // Author name
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              currentUserModel!.username!,
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
+                // User info
+                CustomWidgets.buildUserInfo(
+                  context: context,
+                  userModel: currentUserModel,
+                  isCurrentUser: true,
+                  imageRadius: 30,
                 ),
 
                 UIWidgets.vSeparator(),
@@ -83,7 +78,6 @@ class NewPostScreen extends StatelessWidget {
                 Expanded(
                   child: UIWidgets.customTextFormField(
                     textController: contentController,
-                    keyboardType: TextInputType.text,
                     hint: "What's on your mind?",
                     context: context,
                     disableBorder: true,

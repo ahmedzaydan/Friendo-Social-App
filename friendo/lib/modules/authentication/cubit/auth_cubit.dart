@@ -1,15 +1,13 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: use_build_context_synchronously
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:friendo/models/user_model.dart';
 import 'package:friendo/modules/authentication/cubit/auth_states.dart';
-import 'package:friendo/modules/chats/cubit/chats_cubit.dart';
-import 'package:friendo/modules/posts/cubit/post_cubit.dart';
 import 'package:friendo/shared/components/ui_widgets.dart';
 
-import '../../../layout/cubit/friendo_cubit.dart';
 import '../../../shared/components/constants.dart';
 import '../../../shared/network/local/cache_controller.dart';
 import '../login_screen.dart';
@@ -19,52 +17,85 @@ class AuthCubit extends Cubit<AuthStates> {
 
   static AuthCubit getAuthCubit(context) => BlocProvider.of(context);
 
-  void login({
+  Future<void> login({
     required String email,
     required String password,
     required BuildContext context,
-  }) {
-    emit(LoginLoadingState());
-    FirebaseAuth.instance
-        .signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    )
-        .then((userCredential) {
-      emit(LoginSuccessState(userCredential.user!.uid));
+  }) async {
+    try {
+      emit(LoginLoadingState());
+      var userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      currentUId = userCredential.user!.uid;
+      var deviceToken = await FirebaseMessaging.instance.getToken();
 
-      currentUserId = userCredential.user!.uid;
-      FriendoCubit.getFriendoCubit(context).getCurrentUserModel();
-      PostCubit.getPostCubit(context).getPostsInfo();
-      ChatsCubit.getChatsCubit(context).getUsers();
-    }).catchError((error) {
+      // Update device token in user model
+      await usersCollection.doc(currentUId).update({
+        'deviceToken': deviceToken,
+      });
+      emit(LoginSuccessState(userCredential.user!.uid));
+    } catch (error) {
       emit(LoginErrorState(error.toString()));
-    });
+    }
   }
 
-  void register({
+  Future<void> createUser({
+    required String uid,
+    required String deviceToken,
+    required String username,
+    required String email,
+    required String phone,
+  }) async {
+    try {
+      UserModel userModel = UserModel(
+        uId: uid,
+        deviceToken: deviceToken,
+        username: username,
+        email: email,
+        phone: phone,
+        profileImage: blankImageURL,
+        coverImage: blankImageURL,
+        bio: 'Write your bio...',
+      );
+      await usersCollection.doc(uid).set(userModel.toMap());
+      emit(CreateUserSuccessState());
+    } catch (error) {
+      emit(CreateUserErrorState(error.toString()));
+    }
+  }
+
+  Future<void> register({
     required String username,
     required String email,
     required String password,
     required String phone,
-  }) {
-    emit(RegisterLoadingState());
-    FirebaseAuth.instance
-        .createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    )
-        .then((userCredential) {
-      currentUserId = userCredential.user!.uid;
-      createUser(
-        username: username,
-        uid: currentUserId!,
+  }) async {
+    try {
+      emit(RegisterLoadingState());
+      var userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: email,
-        phone: phone,
+        password: password,
       );
-    }).catchError((error) {
+
+      currentUId = userCredential.user!.uid;
+      var deviceToken = await FirebaseMessaging.instance.getToken();
+      if (deviceToken != null) {
+        createUser(
+          uid: currentUId!,
+          deviceToken: deviceToken,
+          username: username,
+          email: email,
+          phone: phone,
+        );
+        emit(RegisterSuccessState(userCredential.user!.uid));
+      }
+    } catch (error) {
       emit(RegisterErrorState(error.toString()));
-    });
+    }
   }
 
   bool checkPassword({
@@ -84,28 +115,6 @@ class AuthCubit extends Cubit<AuthStates> {
       passwordSuffix = const Icon(Icons.visibility_off_outlined);
     }
     emit(ChangePasswordVisibilityState());
-  }
-
-  void createUser({
-    required String uid,
-    required String username,
-    required String email,
-    required String phone,
-  }) {
-    UserModel userModel = UserModel(
-      uid: uid,
-      username: username,
-      email: email,
-      phone: phone,
-      profileImage: blankImageURL,
-      coverImage: blankImageURL,
-      bio: 'Write your bio...',
-    );
-    usersCollection.doc(uid).set(userModel.toMap()).then((value) {
-      emit(CreateUserSuccessState());
-    }).catchError((error) {
-      emit(CreateUserErrorState(error.toString()));
-    });
   }
 
   void verifyEmail({
@@ -128,14 +137,13 @@ class AuthCubit extends Cubit<AuthStates> {
     });*/
   }
 
-  void logout({
+  Future<void> logout({
     required BuildContext context,
   }) async {
     try {
       emit(LogoutLoadingState());
       await FirebaseAuth.instance.signOut();
       CacheController.removeData(key: 'uid');
-      // ignore: use_build_context_synchronously
       UIWidgets.navigateTo(
         context: context,
         destination: LoginScreen(),

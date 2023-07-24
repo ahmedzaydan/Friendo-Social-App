@@ -1,48 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:friendo/modules/posts/components.dart/post_widgets.dart';
+import 'package:friendo/shared/styles/color.dart';
 
-import '../../models/comment_model.dart';
 import '../../models/user_model.dart';
-import '../../modules/posts/cubit/post_cubit.dart';
-import '../../modules/posts/cubit/post_states.dart';
+import '../../modules/posts/components.dart/post_widgets.dart';
 import 'constants.dart';
 import 'custom_widgets.dart';
 
 class UIWidgets {
-  static AppBar customAppBar({
-    required BuildContext context,
-    String title = '',
-    Widget? titleWidget,
-    List<Widget>? actions,
-    bool hasLeading = true,
-  }) {
-    return AppBar(
-      title: titleWidget ??
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                  color: Colors.white,
-                ),
-          ),
-      leading: hasLeading
-          ? IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              icon: const Icon(
-                Icons.arrow_back_outlined,
-                color: Colors.white,
-              ),
-            )
-          : null,
-      actions: actions,
-    );
-  }
-
   static Widget customMaterialButton({
     double width = double.infinity,
+    double height = 50.0,
     Color textColor = Colors.white,
     Color backgroundColor = Colors.blue,
     bool useTextTheme = false,
@@ -55,6 +23,7 @@ class UIWidgets {
   }) {
     return Container(
       width: width,
+      height: height,
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(radius),
@@ -68,7 +37,7 @@ class UIWidgets {
               ? Theme.of(context).textTheme.bodyLarge
               : Theme.of(context).textTheme.bodyLarge!.copyWith(
                     color: textColor,
-                    backgroundColor: backgroundColor,
+                    backgroundColor: Colors.transparent,
                   ),
         ),
       ),
@@ -89,7 +58,10 @@ class UIWidgets {
     Function(String value)? myOnFieldSubmitted,
     Function(String value)? myOnChanged,
     VoidCallback? myOnTap,
-    double borderRadius = 15.0,
+    double bottomRightRadius = 15.0,
+    double bottomLeftRadius = 15.0,
+    double topRightRadius = 15.0,
+    double topLeftRadius = 15.0,
     bool? myEnabled,
     bool disableBorder = false,
     int? maxLines,
@@ -104,18 +76,18 @@ class UIWidgets {
       validator: validator,
       maxLines: maxLines,
       decoration: InputDecoration(
-        // hintStyle: Theme.of(context).textTheme.bodyLarge,
         prefixIcon: prefixIcon,
-        labelText: hint,
-        // label: Text(hint),
-        // hintStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(
-        //       color: Colors.grey,
-        //     ),
         suffixIcon: suffixIcon,
+        hintText: hint,
         border: disableBorder
             ? InputBorder.none
             : OutlineInputBorder(
-                borderRadius: BorderRadius.circular(borderRadius),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(topLeftRadius),
+                  topRight: Radius.circular(topRightRadius),
+                  bottomLeft: Radius.circular(bottomLeftRadius),
+                  bottomRight: Radius.circular(bottomRightRadius),
+                ),
               ),
       ),
       onFieldSubmitted: myOnFieldSubmitted,
@@ -240,78 +212,38 @@ class UIWidgets {
   static void customShowModalBottomSheet({
     required BuildContext context,
     required String postId,
+    required UserModel authorModel,
     required bool isLikeAction,
     Widget widget = const SizedBox(),
   }) {
+    bool isCurrentUser = authorModel.uId == currentUId;
+
     showModalBottomSheet(
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
       builder: (context) {
         return Scaffold(
-          backgroundColor: Colors.grey[200],
-          body: BlocConsumer<PostCubit, PostStates>(
-            listener: (context, state) {},
-            builder: (context, state) {
-              final PostCubit postCubit = PostCubit.getPostCubit(context);
-              List<dynamic> list = [];
-              isLikeAction
-                  ? list = postCubit.likers[postId]!
-                  : list = postCubit.commentModels[postId]!.values.toList();
-              UserModel authorModel =
-                  postCubit.userModels[postCubit.postModels[postId]!.authorId]!;
-              bool isCurrentUser = authorModel.uid == currentUserId;
-              List<CommentModel> comments =
-                  postCubit.commentModels[postId]!.values.toList();
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Close button
-                  Align(
-                    alignment: Alignment.center,
-                    child: Container(
-                      height: 5,
-                      width: 50,
-                      margin: const EdgeInsets.only(
-                        top: 20.0,
-                        bottom: 10.0,
+          backgroundColor: color1,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomWidgets.buildCloseButton(),
+              Expanded(
+                child: isLikeAction
+                    ? PostWidgets.buildPostLikers(
+                        postId: postId,
+                        isCurrentUser: isCurrentUser,
+                        context: context,
+                      )
+                    : PostWidgets.buildPostComments(
+                        postId: postId,
+                        isCurrentUser: isCurrentUser,
+                        context: context,
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[400],
-                        borderRadius: BorderRadius.circular(10.0),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: list.length,
-                      itemBuilder: (context, index) {
-                        Widget widgetToBuild;
-                        isLikeAction
-                            ? widgetToBuild = CustomWidgets.buildUserInfo(
-                                context: context,
-                                userModel: postCubit.userModels[
-                                    postCubit.likers[postId]![index]]!,
-                                isCurrentUser: isCurrentUser,
-                              )
-                            : widgetToBuild = PostWidgets.buildComment(
-                                context: context,
-                                commentModel: comments[index],
-                                authorModel: authorModel,
-                                isCurrentUser: isCurrentUser,
-                              );
-                        return Align(
-                          alignment: Alignment.centerLeft,
-                          child: widgetToBuild,
-                        );
-                      },
-                    ),
-                  ),
-
-                  widget,
-                ],
-              );
-            },
+              ),
+              widget,
+            ],
           ),
         );
       },
