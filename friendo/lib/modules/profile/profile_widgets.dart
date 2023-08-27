@@ -35,6 +35,7 @@ abstract class ProfileWidgets {
           },
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: EdgeInsets.zero,
@@ -65,15 +66,12 @@ abstract class ProfileWidgets {
             ),
           ),
           if (showUsername)
-            SizedBox(
-              width: innerRadius * 3,
-              child: Text(
-                userModel.username!,
-                style: Theme.of(context).textTheme.labelMedium!.copyWith(),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+            Text(
+              userModel.username!,
+              style: Theme.of(context).textTheme.labelMedium!.copyWith(),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
         ],
       ),
@@ -130,9 +128,10 @@ abstract class ProfileWidgets {
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 10,
-                vertical: 10,
+              padding: const EdgeInsets.only(
+                left: 10,
+                right: 10,
+                top: 25,
               ),
               width: MediaQuery.sizeOf(context).width,
               height: MediaQuery.sizeOf(context).height * 0.7,
@@ -146,31 +145,20 @@ abstract class ProfileWidgets {
               child: Column(
                 children: [
                   // Profile info
-                  Row(
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         '1K Followers',
                       ),
-                      buildProfileImage(
-                        context: context,
-                        userModel: userModel,
-                        innerRadius: 60,
-                      ),
-                      const Text(
+                      Spacer(),
+                      Text(
                         '342 Following',
                       ),
                     ],
                   ),
 
-                  // Bio
-                  Center(
-                    child: Text(
-                      userModel.bio!,
-                    ),
-                  ),
-
-                  UIWidgets.vSeparator(height: 20),
+                  UIWidgets.vSeparator(height: 100),
 
                   // Buttons
                   Row(
@@ -226,7 +214,27 @@ abstract class ProfileWidgets {
               ),
             ),
           ),
-
+          Positioned(
+            top: MediaQuery.sizeOf(context).height * 0.1,
+            left: MediaQuery.sizeOf(context).width / 2 - 60,
+            // right:
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                buildProfileImage(
+                  context: context,
+                  userModel: userModel,
+                  innerRadius: 60,
+                  showUsername: true,
+                ),
+                // Bio
+                Text(
+                  userModel.bio!,
+                ),
+              ],
+            ),
+          ),
           // // Buttons
           // if (isCurrentUser)
           //   Row(

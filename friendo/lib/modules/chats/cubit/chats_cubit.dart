@@ -113,15 +113,15 @@ class ChatsCubit extends Cubit<ChatsStates> {
       stream: getMessages(receiverId: receiverId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          CustomWidgets.buildStreamBuilderWaiting();
+         return CustomWidgets.buildStreamBuilderWaiting();
         }
 
         if (snapshot.hasError) {
-          CustomWidgets.buildStreamBuilderError(snapshot.error.toString());
+         return CustomWidgets.buildStreamBuilderError(snapshot.error.toString());
         }
 
         if (snapshot.data == null) {
-          CustomWidgets.buildStreamBuilderNoData('No messages yet');
+         return CustomWidgets.buildStreamBuilderNoData('No messages yet');
         }
         List<MessageModel> messages = snapshot.data!;
         return ListView.separated(
