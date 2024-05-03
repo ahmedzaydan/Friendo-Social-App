@@ -42,3 +42,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# ignore Friendo-Todo.docx 
+Friendo-Todo.docx
+
+# ignore UI Links.txt 
+UI Links.txt
+
+# ignore Social Media App (Community).fig
+Social Media App (Community).fig
