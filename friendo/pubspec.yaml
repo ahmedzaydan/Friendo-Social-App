@@ -31,6 +31,13 @@ dependencies:
   firebase_storage: ^11.7.4
   firebase_messaging: ^14.9.1
   curved_labeled_navigation_bar: ^2.0.2
+  flutter_launcher_icons: ^0.13.1
+
+# flutter launcher icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/app_icon.jpg"
 
 dev_dependencies:
   flutter_test:
