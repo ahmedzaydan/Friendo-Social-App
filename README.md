@@ -25,12 +25,11 @@ This project is built with Flutter and Dart, and it includes various features ty
    flutter pub get
    flutter run
 
-## [Figma design link](https://www.figma.com/file/CCZJcaJG1lFn711XtsIK0x/Social-Media-App-(Community)?type=design&node-id=17-789&mode=design&t=Xp70LgTlIEZhaEYO-0)
+### [Figma design link](https://www.figma.com/file/CCZJcaJG1lFn711XtsIK0x/Social-Media-App-(Community)?type=design&node-id=17-789&mode=design&t=Xp70LgTlIEZhaEYO-0)
 
-## [APK download url](https://www.mediafire.com/file/x5q2lwyh30dekpr/Friendo.apk/file)
+### [APK download url](https://www.mediafire.com/file/x5q2lwyh30dekpr/Friendo.apk/file)
 
 ## Contributing
 Contributions are welcome! Please fork this repository and submit a pull request.
 
-## Contact me
-[Ahmed Zaydan](ahmedzaydan2901@gmail.com)
+#### Please feel free to contact me: [Ahmed Zaydan](ahmedzaydan2901@gmail.com)
